@@ -2016,6 +2016,10 @@ static int32_t HQA_RfRegBulkRead(struct net_device
 		u4Offset = u4Offset | (u4WfSel << 16);
 	}
 
+	if ((2 + (u4Length * 4)) > sizeof(HqaCmdFrame->Data)) {
+		i4Status = WLAN_STATUS_INVALID_LENGTH;
+		return i4Status;
+	}
 
 	for (u4Index = 0; u4Index < u4Length; u4Index++) {
 		rMcrInfo.u4McrOffset = u4Offset + u4Index * 4;
@@ -9039,8 +9043,8 @@ int priv_qa_agent(IN struct net_device *prNetDev,
 
 	memset(HqaCmdFrame, 0, sizeof(*HqaCmdFrame));
 
-	if (prIwReqData->data.length > sizeof(*HqaCmdFrame))
-	{
+	if (!prIwReqData || prIwReqData->data.length == 0 ||
+		   prIwReqData->data.length > sizeof(*HqaCmdFrame)) {
 		DBGLOG(RFTEST, WARN, "%s: Invalid length:%d > %d\n",
 				__func__, prIwReqData->data.length, sizeof(*HqaCmdFrame));
 		i4Status = -EFAULT;

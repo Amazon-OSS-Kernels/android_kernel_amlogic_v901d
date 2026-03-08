@@ -1675,6 +1675,11 @@ u_int8_t rlmDomainTxPwrLimitGetCountryRange(
 			u4TmpPos++;
 		}
 
+		if (u4TmpPos >= u4BufLen) {
+			DBGLOG(RLM, STATE, "Cannot find CountryCode(0x%x) in TxPwrLimit table\n", u4CountryCode);
+			return FALSE;
+		}
+
 		cIdx = 0;
 		while ((u4TmpPos < u4BufLen) &&
 			   (cIdx < TX_PWR_LIMIT_COUNTRY_STR_MAX_LEN) &&
@@ -2307,8 +2312,10 @@ u_int8_t rlmDomainGetTxPwrLimit(
 	pucConfigBuf = (uint8_t *) kalMemAlloc(
 		WLAN_TX_PWR_LIMIT_FILE_BUF_SIZE, VIR_MEM_TYPE);
 
-	if (!pucConfigBuf)
+	if (!pucConfigBuf) {
+		DBGLOG(RLM, ERROR, "Alloc buffer for TxPwrLimit failed\n");
 		return FALSE;
+	}
 
 	bRet = rlmDomainTxPwrLimitLoadFromFile(prGlueInfo->prAdapter,
 		pucConfigBuf, &u4ConfigReadLen);

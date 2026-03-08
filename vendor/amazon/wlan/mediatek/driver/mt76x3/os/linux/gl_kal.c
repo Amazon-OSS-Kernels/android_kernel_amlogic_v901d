@@ -3079,6 +3079,11 @@ kalIoctl(IN struct GLUE_INFO *prGlueInfo,
 
 		kal_show_stack(prGlueInfo->prAdapter,
 			prGlueInfo->main_thread, NULL);
+
+#if CFG_FTV_60720_PATCH
+		dump_stack();
+#endif
+
 		ret = WLAN_STATUS_FAILURE;
 	}
 
@@ -3587,13 +3592,21 @@ int hif_thread(void *data)
 	struct ADAPTER *prAdapter = prGlueInfo->prAdapter;
 	int ret = 0;
 #if CFG_ENABLE_WAKE_LOCK
-	KAL_WAKE_LOCK_T rHifThreadWakeLock;
+        KAL_WAKE_LOCK_T *prHifThreadWakeLock;
+
+	prHifThreadWakeLock = kalMemAlloc(sizeof(KAL_WAKE_LOCK_T),
+			VIR_MEM_TYPE);
+	if (!prHifThreadWakeLock) {
+		DBGLOG(INIT, ERROR, "%s MemAlloc Fail\n",
+			KAL_GET_CURRENT_THREAD_NAME());
+		return 0;
+	}
+
+	KAL_WAKE_LOCK_INIT(prAdapter, prHifThreadWakeLock, "WLAN hif_thread");
+	KAL_WAKE_LOCK(prAdapter, prHifThreadWakeLock);
 #endif
 
-	KAL_WAKE_LOCK_INIT(prAdapter, &rHifThreadWakeLock, "WLAN hif_thread");
-	KAL_WAKE_LOCK(prAdapter, &rHifThreadWakeLock);
-
-	DBGLOG(INIT, INFO, "%s:%u starts running...\n",
+	DBGLOG(INIT, STATE, "%s:%u starts running...\n",
 	       KAL_GET_CURRENT_THREAD_NAME(), KAL_GET_CURRENT_THREAD_ID());
 
 	prGlueInfo->u4HifThreadPid = KAL_GET_CURRENT_THREAD_ID();
@@ -3611,9 +3624,11 @@ int hif_thread(void *data)
 			break;
 		}
 
+#if CFG_ENABLE_WAKE_LOCK
 		/* Unlock wakelock if hif_thread going to idle */
 		if (!(prGlueInfo->ulFlag & GLUE_FLAG_HIF_PROCESS))
-			KAL_WAKE_UNLOCK(prAdapter, &rHifThreadWakeLock);
+			KAL_WAKE_UNLOCK(prAdapter, prHifThreadWakeLock);
+#endif
 
 		/*
 		 * sleep on waitqueue if no events occurred. Event contain
@@ -3627,8 +3642,8 @@ int hif_thread(void *data)
 				!= 0));
 		} while (ret != 0);
 #if CFG_ENABLE_WAKE_LOCK
-		if (!KAL_WAKE_LOCK_ACTIVE(prAdapter, &rHifThreadWakeLock))
-			KAL_WAKE_LOCK(prAdapter, &rHifThreadWakeLock);
+		if (!KAL_WAKE_LOCK_ACTIVE(prAdapter, prHifThreadWakeLock))
+			KAL_WAKE_LOCK(prAdapter, prHifThreadWakeLock);
 #endif
 		if (prAdapter->fgIsFwOwn
 		    && (prGlueInfo->ulFlag == GLUE_FLAG_HIF_FW_OWN)) {
@@ -3708,12 +3723,15 @@ int hif_thread(void *data)
 
 	complete(&prGlueInfo->rHifHaltComp);
 #if CFG_ENABLE_WAKE_LOCK
-	if (KAL_WAKE_LOCK_ACTIVE(prAdapter, &rHifThreadWakeLock))
-		KAL_WAKE_UNLOCK(prAdapter, &rHifThreadWakeLock);
-	KAL_WAKE_LOCK_DESTROY(prAdapter, &rHifThreadWakeLock);
+	if (KAL_WAKE_LOCK_ACTIVE(prAdapter, prHifThreadWakeLock))
+		KAL_WAKE_UNLOCK(prAdapter, prHifThreadWakeLock);
+	KAL_WAKE_LOCK_DESTROY(prAdapter, prHifThreadWakeLock);
+
+	kalMemFree(prHifThreadWakeLock, VIR_MEM_TYPE,
+			sizeof(KAL_WAKE_LOCK_T));
 #endif
 
-	DBGLOG(INIT, TRACE, "%s:%u stopped!\n",
+	DBGLOG(INIT, STATE, "%s:%u stopped!\n",
 	       KAL_GET_CURRENT_THREAD_NAME(), KAL_GET_CURRENT_THREAD_ID());
 
 #if CFG_CHIP_RESET_HANG
@@ -3741,18 +3759,27 @@ int rx_thread(void *data)
 
 	int ret = 0;
 #if CFG_ENABLE_WAKE_LOCK
-	KAL_WAKE_LOCK_T rRxThreadWakeLock;
+	KAL_WAKE_LOCK_T *prRxThreadWakeLock;
 #endif
 	uint32_t u4LoopCount;
 
 	/* for spin lock acquire and release */
 	KAL_SPIN_LOCK_DECLARATION();
 
+#if CFG_ENABLE_WAKE_LOCK
+	prRxThreadWakeLock = kalMemAlloc(sizeof(KAL_WAKE_LOCK_T),
+			VIR_MEM_TYPE);
+	if (!prRxThreadWakeLock) {
+		DBGLOG(INIT, ERROR, "%s MemAlloc Fail\n",
+				KAL_GET_CURRENT_THREAD_NAME());
+		return 0;
+	}
 	KAL_WAKE_LOCK_INIT(prGlueInfo->prAdapter,
-			   &rRxThreadWakeLock, "WLAN rx_thread");
-	KAL_WAKE_LOCK(prGlueInfo->prAdapter, &rRxThreadWakeLock);
+			   prRxThreadWakeLock, "WLAN rx_thread");
+	KAL_WAKE_LOCK(prGlueInfo->prAdapter, prRxThreadWakeLock);
+#endif
 
-	DBGLOG(INIT, INFO, "%s:%u starts running...\n",
+	DBGLOG(INIT, STATE, "%s:%u starts running...\n",
 	       KAL_GET_CURRENT_THREAD_NAME(), KAL_GET_CURRENT_THREAD_ID());
 
 	prGlueInfo->u4RxThreadPid = KAL_GET_CURRENT_THREAD_ID();
@@ -3779,11 +3806,12 @@ int rx_thread(void *data)
 			break;
 		}
 
+#if CFG_ENABLE_WAKE_LOCK
 		/* Unlock wakelock if rx_thread going to idle */
 		if (!(prGlueInfo->ulFlag & GLUE_FLAG_RX_PROCESS))
 			KAL_WAKE_UNLOCK(prGlueInfo->prAdapter,
-					&rRxThreadWakeLock);
-
+					prRxThreadWakeLock);
+#endif
 		/*
 		 * sleep on waitqueue if no events occurred.
 		 */
@@ -3793,9 +3821,9 @@ int rx_thread(void *data)
 		} while (ret != 0);
 #if CFG_ENABLE_WAKE_LOCK
 		if (!KAL_WAKE_LOCK_ACTIVE(prGlueInfo->prAdapter,
-					  &rRxThreadWakeLock))
+					  prRxThreadWakeLock))
 			KAL_WAKE_LOCK(prGlueInfo->prAdapter,
-				      &rRxThreadWakeLock);
+				      prRxThreadWakeLock);
 #endif
 		if (test_and_clear_bit(GLUE_FLAG_RX_TO_OS_BIT,
 				       &prGlueInfo->ulFlag)) {
@@ -3837,13 +3865,15 @@ int rx_thread(void *data)
 	complete(&prGlueInfo->rRxHaltComp);
 #if CFG_ENABLE_WAKE_LOCK
 	if (KAL_WAKE_LOCK_ACTIVE(prGlueInfo->prAdapter,
-				 &rRxThreadWakeLock))
-		KAL_WAKE_UNLOCK(prGlueInfo->prAdapter, &rRxThreadWakeLock);
+				 prRxThreadWakeLock))
+		KAL_WAKE_UNLOCK(prGlueInfo->prAdapter, prRxThreadWakeLock);
 	KAL_WAKE_LOCK_DESTROY(prGlueInfo->prAdapter,
-			      &rRxThreadWakeLock);
+			      prRxThreadWakeLock);
+	kalMemFree(prRxThreadWakeLock, VIR_MEM_TYPE,
+			sizeof(KAL_WAKE_LOCK_T));
 #endif
 
-	DBGLOG(INIT, TRACE, "%s:%u stopped!\n",
+	DBGLOG(INIT, STATE, "%s:%u stopped!\n",
 	       KAL_GET_CURRENT_THREAD_NAME(), KAL_GET_CURRENT_THREAD_ID());
 
 #if CFG_CHIP_RESET_HANG
@@ -3879,7 +3909,7 @@ int main_thread(void *data)
 	int ret = 0;
 	u_int8_t fgNeedHwAccess = FALSE;
 #if CFG_ENABLE_WAKE_LOCK
-	KAL_WAKE_LOCK_T rTxThreadWakeLock;
+	KAL_WAKE_LOCK_T *prTxThreadWakeLock;
 #endif
 
 #if CFG_SUPPORT_MULTITHREAD
@@ -3892,11 +3922,20 @@ int main_thread(void *data)
 	set_user_nice(current,
 		      prGlueInfo->prAdapter->rWifiVar.cThreadNice);
 
+#if CFG_ENABLE_WAKE_LOCK
+	prTxThreadWakeLock = kalMemAlloc(sizeof(KAL_WAKE_LOCK_T),
+			VIR_MEM_TYPE);
+	if (!prTxThreadWakeLock) {
+		DBGLOG(INIT, ERROR, "%s MemAlloc Fail\n",
+				KAL_GET_CURRENT_THREAD_NAME());
+		return FALSE;
+	}
 	KAL_WAKE_LOCK_INIT(prGlueInfo->prAdapter,
-			   &rTxThreadWakeLock, "WLAN main_thread");
-	KAL_WAKE_LOCK(prGlueInfo->prAdapter, &rTxThreadWakeLock);
+			   prTxThreadWakeLock, "WLAN main_thread");
+	KAL_WAKE_LOCK(prGlueInfo->prAdapter, prTxThreadWakeLock);
 
-	DBGLOG(INIT, INFO, "%s:%u starts running...\n",
+#endif
+	DBGLOG(INIT, STATE, "%s:%u starts running...\n",
 	       KAL_GET_CURRENT_THREAD_NAME(), KAL_GET_CURRENT_THREAD_ID());
 
 	while (TRUE) {
@@ -3914,10 +3953,12 @@ int main_thread(void *data)
 			break;
 		}
 
+#if CFG_ENABLE_WAKE_LOCK
 		/* Unlock wakelock if main_thread going to idle */
 		if (!(prGlueInfo->ulFlag & GLUE_FLAG_MAIN_PROCESS))
 			KAL_WAKE_UNLOCK(prGlueInfo->prAdapter,
-					&rTxThreadWakeLock);
+					prTxThreadWakeLock);
+#endif
 
 		/*
 		 * sleep on waitqueue if no events occurred. Event contain
@@ -3931,9 +3972,9 @@ int main_thread(void *data)
 		} while (ret != 0);
 #if CFG_ENABLE_WAKE_LOCK
 		if (!KAL_WAKE_LOCK_ACTIVE(prGlueInfo->prAdapter,
-					  &rTxThreadWakeLock))
+					  prTxThreadWakeLock))
 			KAL_WAKE_LOCK(prGlueInfo->prAdapter,
-				      &rTxThreadWakeLock);
+				      prTxThreadWakeLock);
 #endif
 
 #if CFG_ENABLE_WIFI_DIRECT
@@ -4126,13 +4167,15 @@ int main_thread(void *data)
 	complete(&prGlueInfo->rHaltComp);
 #if CFG_ENABLE_WAKE_LOCK
 	if (KAL_WAKE_LOCK_ACTIVE(prGlueInfo->prAdapter,
-				 &rTxThreadWakeLock))
-		KAL_WAKE_UNLOCK(prGlueInfo->prAdapter, &rTxThreadWakeLock);
+				 prTxThreadWakeLock))
+		KAL_WAKE_UNLOCK(prGlueInfo->prAdapter, prTxThreadWakeLock);
 	KAL_WAKE_LOCK_DESTROY(prGlueInfo->prAdapter,
-			      &rTxThreadWakeLock);
+			      prTxThreadWakeLock);
+	kalMemFree(prTxThreadWakeLock, VIR_MEM_TYPE,
+			sizeof(KAL_WAKE_LOCK_T));
 #endif
 
-	DBGLOG(INIT, TRACE, "%s:%u stopped!\n",
+	DBGLOG(INIT, STATE, "%s:%u stopped!\n",
 	       KAL_GET_CURRENT_THREAD_NAME(), KAL_GET_CURRENT_THREAD_ID());
 
 #if CFG_CHIP_RESET_HANG
@@ -6540,6 +6583,22 @@ void kalWowProcess(IN struct GLUE_INFO *prGlueInfo,
 		kalSendAddMdnsCacheToFw(prGlueInfo);
 	}
 
+	/* add mDNS wow */
+	if (enable && prGlueInfo->prAdapter->mdns_wow_pattern_len > 0) {
+		rCmdWowlanParam.mdns_wow_pattern_len =
+			prGlueInfo->prAdapter->mdns_wow_pattern_len;
+		kalStrnCpy(rCmdWowlanParam.mdns_wow_pattern,
+			   prGlueInfo->prAdapter->mdns_wow_pattern,
+			   prGlueInfo->prAdapter->mdns_wow_pattern_len);
+		DBGLOG(PF, INFO, "mDNS wow pattern:%s len=%d\n",
+			rCmdWowlanParam.mdns_wow_pattern,
+			rCmdWowlanParam.mdns_wow_pattern_len);
+	}
+	else {
+		rCmdWowlanParam.mdns_wow_pattern_len = 0;
+		DBGLOG(PF, INFO, "mDNS wow disabled.\n");
+	}
+
 	DBGLOG(PF, INFO,
 	       "PF, pAd ucBssIndex=%d, ucOwnMacIndex=%d\n",
 	       prGlueInfo->prAdapter->prAisBssInfo->ucBssIndex,
@@ -8779,7 +8838,11 @@ unsigned long kal_kallsyms_lookup_name(const char *name)
 {
 	unsigned long ret = 0;
 
+#if 1 // frog  MTK TODO
+	ret = (unsigned long)__symbol_get(name);
+#else
 	ret = kallsyms_lookup_name(name);
+#endif
 	if (ret) {
 #ifdef CONFIG_ARM
 #ifdef CONFIG_THUMB2_KERNEL

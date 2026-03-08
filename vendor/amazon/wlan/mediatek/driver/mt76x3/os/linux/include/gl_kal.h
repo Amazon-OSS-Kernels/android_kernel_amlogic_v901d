@@ -585,7 +585,42 @@ static inline void kalCfg80211ScanDone(struct cfg80211_scan_request *request,
 /*----------------------------------------------------------------------------*/
 #if CFG_ENABLE_WAKE_LOCK
 /* CONFIG_ANDROID is defined in Android kernel source */
-#if (KERNEL_VERSION(4, 9, 0) <= LINUX_VERSION_CODE)
+#if (KERNEL_VERSION(5, 1, 0) <= LINUX_VERSION_CODE)
+/* TODO: wakeup_source_init/wakeup_source_trash removed from v5.1
+* Update KAL_WAKE_LOCK_INIT/DESTROY to equivalent ways
+*/
+#define KAL_WAKE_LOCK_INIT(_prAdapter, _prWakeLock, _pcName) ({ \
+    if (_prWakeLock) { \
+        memset(_prWakeLock, 0, sizeof(*(_prWakeLock))); \
+        (_prWakeLock)->name = _pcName; \
+    } \
+    wakeup_source_add(_prWakeLock); \
+})
+
+#define KAL_WAKE_LOCK_DESTROY(_prAdapter, _prWakeLock) \
+    wakeup_source_remove(_prWakeLock);
+
+#define KAL_WAKE_LOCK(_prAdapter, _prWakeLock) ({ \
+    u_int8_t state = 0; \
+    if (halIsHifStateReady(_prAdapter, &state)) { \
+        __pm_stay_awake(_prWakeLock); \
+    } \
+})
+
+#define KAL_WAKE_LOCK_TIMEOUT(_prAdapter, _prWakeLock, _u4Timeout) ({ \
+    u_int8_t state = 0; \
+    if (halIsHifStateReady(_prAdapter, &state)) { \
+        __pm_wakeup_event(_prWakeLock, _u4Timeout); \
+    } \
+})
+
+#define KAL_WAKE_UNLOCK(_prAdapter, _prWakeLock) \
+    __pm_relax(_prWakeLock)
+
+#define KAL_WAKE_LOCK_ACTIVE(_prAdapter, _prWakeLock) \
+    ((_prWakeLock)->active)
+
+#elif (KERNEL_VERSION(4, 9, 0) <= LINUX_VERSION_CODE)
 #define KAL_WAKE_LOCK_INIT(_prAdapter, _prWakeLock, _pcName) \
 	wakeup_source_init(_prWakeLock, _pcName)
 
@@ -1122,8 +1157,13 @@ kalDevPortWrite(struct GLUE_INFO *prGlueInfo,
 
 u_int8_t kalDevWriteData(IN struct GLUE_INFO *prGlueInfo,
 			 IN struct MSDU_INFO *prMsduInfo);
+#if CFG_FTV_62866_PATCH
+u_int32_t kalDevWriteCmd(IN struct GLUE_INFO *prGlueInfo,
+			IN struct CMD_INFO *prCmdInfo, IN uint8_t ucTC);
+#else
 u_int8_t kalDevWriteCmd(IN struct GLUE_INFO *prGlueInfo,
 			IN struct CMD_INFO *prCmdInfo, IN uint8_t ucTC);
+#endif
 u_int8_t kalDevKickData(IN struct GLUE_INFO *prGlueInfo);
 void kalDevReadIntStatus(IN struct ADAPTER *prAdapter,
 			 OUT uint32_t *pu4IntStatus);

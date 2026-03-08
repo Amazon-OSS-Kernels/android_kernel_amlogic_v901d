@@ -1123,7 +1123,12 @@ void halRxUSBReceiveDataComplete(struct urb *urb)
 		return;
 	}
 
+#if CFG_FTV_64888_PATCH
+	if (urb->status == -ESHUTDOWN || urb->status == -ENOENT || urb->status == -EPROTO) {
+		DBGLOG(RX, ERROR, "urb->status %d\n", urb->status);
+#else
 	if (urb->status == -ESHUTDOWN || urb->status == -ENOENT) {
+#endif
 		glUsbEnqueueReq(prHifInfo, &prHifInfo->rRxDataFreeQ, prUsbReq, &prHifInfo->rRxDataQLock, FALSE);
 		DBGLOG(RX, ERROR, "USB device shutdown skip Rx [%s]\n", __func__);
 		return;

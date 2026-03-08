@@ -274,6 +274,9 @@ void aisInitializeConnectionSettings(IN struct ADAPTER *prAdapter,
 #if CFG_SUPPORT_OWE
 	kalMemSet(&prConnSettings->rOweInfo, 0, sizeof(struct OWE_INFO_T));
 #endif
+#if CFG_SUPPORT_H2E
+	kalMemSet(&prConnSettings->rRsnXE, 0, sizeof(struct RSNXE));
+#endif
 } /* end of aisFsmInitializeConnectionSettings() */
 
 /*----------------------------------------------------------------------------*/
@@ -2164,6 +2167,8 @@ void aisFsmSteps(IN struct ADAPTER *prAdapter, enum ENUM_AIS_STATE eNextState)
 
 			prConnSettings->fgIsDisconnectedByNonRequest = TRUE;
 
+			/* Reset WPA info */
+			prGlueInfo->rWpaInfo.u4AuthAlg = 0;
 
 			eNextState = AIS_STATE_IDLE;
 			fgIsTransition = TRUE;
@@ -2246,6 +2251,10 @@ void aisFsmSteps(IN struct ADAPTER *prAdapter, enum ENUM_AIS_STATE eNextState)
 					   (prAisFsmInfo->fgIsScanning
 					    || prAisBssInfo->fgIsNetAbsent) ?
 					   1000 : 100);
+
+			/* Reset WPA info */
+			prGlueInfo->rWpaInfo.u4AuthAlg = 0;
+
 			break;
 
 		case AIS_STATE_REQ_REMAIN_ON_CHANNEL:

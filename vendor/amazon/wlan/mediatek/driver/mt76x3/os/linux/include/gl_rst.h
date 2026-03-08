@@ -117,6 +117,9 @@ enum _ENUM_CHIP_RESET_REASON_TYPE_T {
 	RST_BT_TRIGGER,
 	RST_OID_TIMEOUT,
 	RST_CMD_TRIGGER,
+#if CFG_FTV_abc123_135_PATCH
+	RST_PROBE_FAIL,
+#endif
 	RST_REASON_MAX
 };
 
@@ -132,6 +135,11 @@ struct RESET_STRUCT {
 #if CFG_WMT_RESET_API_SUPPORT
 	enum ENUM_RESET_STATUS rst_data;
 	struct work_struct rst_trigger_work;
+#if !(CFG_FTV_abc123_135_PATCH)
+	uint32_t rst_trigger_flag;
+#endif
+#endif
+#if CFG_FTV_abc123_135_PATCH
 	uint32_t rst_trigger_flag;
 #endif
 };

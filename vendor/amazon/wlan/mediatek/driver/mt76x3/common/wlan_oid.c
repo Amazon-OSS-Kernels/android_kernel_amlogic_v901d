@@ -2430,6 +2430,7 @@ wlanoidSetRemoveWep(IN struct ADAPTER *prAdapter,
 		return WLAN_STATUS_INVALID_DATA;
 	}
 
+	kalMemZero(&rRemoveKey, sizeof(struct PARAM_REMOVE_KEY));
 	rRemoveKey.u4Length = sizeof(struct PARAM_REMOVE_KEY);
 	rRemoveKey.u4KeyIndex = *(uint32_t *) pvSetBuffer;
 
@@ -2939,6 +2940,7 @@ wlanoidSetRemoveKey(IN struct ADAPTER *prAdapter,
 	u_int8_t fgRemoveBCKey = FALSE;
 	uint32_t ucRemoveBCKeyAtIdx = WTBL_RESERVED_ENTRY;
 	uint32_t u4KeyIndex;
+	u_int8_t fgIsOid = TRUE;
 
 	DEBUGFUNC("wlanoidSetRemoveKey");
 
@@ -2978,6 +2980,8 @@ wlanoidSetRemoveKey(IN struct ADAPTER *prAdapter,
 	prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter,
 					  prRemovedKey->ucBssIdx);
 	ASSERT(prBssInfo);
+	if (prRemovedKey->ucCtrlFlag & FLAG_RM_KEY_CTRL_WO_OID)
+		fgIsOid = FALSE;
 
 	u4KeyIndex = prRemovedKey->u4KeyIndex & 0x000000FF;
 #if CFG_SUPPORT_802_11W
@@ -3074,7 +3078,7 @@ wlanoidSetRemoveKey(IN struct ADAPTER *prAdapter,
 					  struct CMD_802_11_KEY);
 	prCmdInfo->pfCmdDoneHandler = nicCmdEventSetCommon;
 	prCmdInfo->pfCmdTimeoutHandler = nicOidCmdTimeoutCommon;
-	prCmdInfo->fgIsOid = g_fgIsOid;
+	prCmdInfo->fgIsOid = fgIsOid;
 	prCmdInfo->ucCID = CMD_ID_ADD_REMOVE_KEY;
 	prCmdInfo->fgSetQuery = TRUE;
 	prCmdInfo->fgNeedResp = FALSE;

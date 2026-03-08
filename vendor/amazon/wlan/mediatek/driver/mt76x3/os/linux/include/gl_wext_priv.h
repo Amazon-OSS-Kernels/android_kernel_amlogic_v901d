@@ -411,6 +411,8 @@ enum {
 #define COEX_BCM_IS_BT_BLE_VOBLE(x) ((x) & VAR_BT_PROF_BLE_VOBLE)
 #define COEX_BCM_IS_BT_A2DP_SINK(x) ((x) & VAR_BT_PROF_BT_A2DP_SINK)
 
+#define IW_PRIV_BUF_SIZE           2000
+
 /*******************************************************************************
  *                             D A T A   T Y P E S
  *******************************************************************************

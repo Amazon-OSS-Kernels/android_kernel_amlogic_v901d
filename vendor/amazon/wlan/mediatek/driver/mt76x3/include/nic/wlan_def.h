@@ -1133,6 +1133,14 @@ struct OWE_INFO_T {
 };
 #endif
 
+#if CFG_SUPPORT_H2E
+struct RSNXE {
+	uint8_t ucElemId;
+	uint8_t ucLength;
+	uint16_t u2Cap;
+} __KAL_ATTRIB_PACKED__;
+#endif
+
 /*******************************************************************************
  *                            P U B L I C   D A T A
  *******************************************************************************

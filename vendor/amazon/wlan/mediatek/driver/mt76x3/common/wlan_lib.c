@@ -131,6 +131,8 @@ static const u_int16_t FELossOffset[MAX_ANTENNA_NUM][FELOSS_CH_GROUP_NUM] = {
 	(((_sValue) & BIT((n)-1)) ? ((_sValue) | BITS(n, 31)) : \
 	 ((_sValue) & ~BITS(n, 31)))
 
+#define  MDNS_WOW_IPV6_PATTERN      "MdnsWowIpv6Pattern"
+
 /* TODO: Check */
 /* OID set handlers without the need to access HW register */
 PFN_OID_HANDLER_FUNC apfnOidSetHandlerWOHwAccess[] = {
@@ -1570,6 +1572,10 @@ uint32_t wlanTxCmdMthread(IN struct ADAPTER *prAdapter)
 	 * UINT_32 u4Address;
 	 */
 	uint32_t u4TxDoneQueueSize;
+#if CFG_FTV_62866_PATCH
+	uint32_t tx_status;
+	uint32_t tx_retry_cnt = 0;
+#endif
 
 	KAL_SPIN_LOCK_DECLARATION();
 
@@ -1601,6 +1607,37 @@ uint32_t wlanTxCmdMthread(IN struct ADAPTER *prAdapter)
 		prCmdInfo = (struct CMD_INFO *) prQueueEntry;
 		prCmdInfo->pfHifTxCmdDoneCb = wlanTxCmdDoneCb;
 
+#if CFG_FTV_62866_PATCH
+		if(tx_retry_cnt == 0) {
+			if ((!prCmdInfo->fgSetQuery) || (prCmdInfo->fgNeedResp)) {
+				KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_PENDING);
+				QUEUE_INSERT_TAIL(&(prAdapter->rPendingCmdQueue),
+						  (struct QUE_ENTRY *) prCmdInfo);
+				KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_PENDING);
+			} else {
+				QUEUE_INSERT_TAIL(prTempCmdDoneQue, prQueueEntry);
+			}
+		}
+
+		tx_status = nicTxCmd(prAdapter, prCmdInfo, TC4_INDEX);
+
+		if(tx_retry_cnt < NIC_TX_RESOURCE_POLLING_TIMEOUT) {
+			if(tx_status == WLAN_STATUS_RESOURCES) {
+				tx_retry_cnt++;
+				kalMsleep(NIC_TX_RESOURCE_POLLING_DELAY_MSEC);
+				continue;
+			}
+		}
+		else {
+			struct WIFI_CMD *prWifiCmd =
+			(struct WIFI_CMD *) prCmdInfo->pucInfoBuffer;
+
+			DBGLOG(INIT, ERROR,
+				"RETRY[%d] TX CMD: ID[0x%02X] SEQ[%u] CMD cannot send\n",
+			tx_retry_cnt, prWifiCmd->ucCID, prWifiCmd->ucSeqNum);
+			tx_retry_cnt = 0;
+		}
+#else
 		if ((!prCmdInfo->fgSetQuery) || (prCmdInfo->fgNeedResp)) {
 			KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_PENDING);
 			QUEUE_INSERT_TAIL(&(prAdapter->rPendingCmdQueue),
@@ -1609,8 +1646,8 @@ uint32_t wlanTxCmdMthread(IN struct ADAPTER *prAdapter)
 		} else {
 			QUEUE_INSERT_TAIL(prTempCmdDoneQue, prQueueEntry);
 		}
-
 		nicTxCmd(prAdapter, prCmdInfo, TC4_INDEX);
+#endif
 
 		/* DBGLOG(INIT, INFO, "==> TX CMD QID: %d (Q:%d)\n",
 		 *        prCmdInfo->ucCID, prTempCmdQue->u4NumElem));
@@ -1619,6 +1656,18 @@ uint32_t wlanTxCmdMthread(IN struct ADAPTER *prAdapter)
 		GLUE_DEC_REF_CNT(prAdapter->prGlueInfo->i4TxPendingCmdNum);
 		QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry,
 				  struct QUE_ENTRY *);
+
+#if CFG_FTV_62866_PATCH
+		if(tx_retry_cnt) {
+			struct WIFI_CMD *prWifiCmd =
+			(struct WIFI_CMD *) prCmdInfo->pucInfoBuffer;
+
+			DBGLOG(INIT, STATE, "RETRY[%d] TX CMD: ID[0x%02X] SEQ[%u]\n",
+				tx_retry_cnt, prWifiCmd->ucCID, prWifiCmd->ucSeqNum);
+		}
+		tx_retry_cnt = 0;
+#endif
+
 	}
 
 	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_CMD_DONE_QUE);
@@ -6460,6 +6509,17 @@ void wlanInitFeatureOption(IN struct ADAPTER *prAdapter)
 	    "00:0c:e7:66:32:e1", 0))
 		DBGLOG(INIT, ERROR, "get MacAddr fail, use defaul\n");
 
+	if (wlanCfgGet(prAdapter,
+		       MDNS_WOW_IPV6_PATTERN,
+		       prAdapter->mdns_wow_pattern,
+		       "", 0) == WLAN_STATUS_SUCCESS) {
+		prAdapter->mdns_wow_pattern_len =
+			kalStrnLen(prAdapter->mdns_wow_pattern,
+				   WLAN_CFG_VALUE_LEN_MAX);
+	}
+	else
+		prAdapter->mdns_wow_pattern_len = 0;
+
 	prWifiVar->ucCtiaMode = (uint8_t) wlanCfgGetUint32(
 					prAdapter, "CtiaMode", 0);
 
@@ -9572,6 +9632,13 @@ wlanGetAntPathType(IN struct ADAPTER *prAdapter,
 #if CFG_SUPPORT_COEX_NON_COTX
 	enum ENUM_BAND eBand;
 	struct BSS_INFO *prBssInfo;
+
+	if (ucBssIndex > prAdapter->ucHwBssIdNum) {
+		DBGLOG(SW4, ERROR, "invalid bssinfo index[%u], skip dump!\n", ucBssIndex);
+		ASSERT(0); // for userdebug case
+
+		return ucFianlWfPathType;
+	}
 
 	if (GET_COEX_NON_COTX(prAdapter) &&
 		ucNss == 2) {

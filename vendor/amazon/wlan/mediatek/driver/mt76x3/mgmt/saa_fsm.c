@@ -139,6 +139,9 @@ void saaSendAuthAssoc(IN struct ADAPTER *prAdapter,
 	struct CONNECTION_SETTINGS *prConnSettings = NULL;
 	/* default for OPEN */
 	uint16_t u2AuthTransSN = AUTH_TRANSACTION_SEQ_1;
+#if CFG_SUPPORT_H2E
+	uint16_t u2AuthStatusCode = STATUS_CODE_RESERVED;
+#endif
 	struct BSS_DESC *prBssDesc = NULL;
 	struct AIS_SPECIFIC_BSS_INFO *prAisSpecBssInfo = NULL;
 	struct PARAM_SSID rSsid;
@@ -191,6 +194,19 @@ void saaSendAuthAssoc(IN struct ADAPTER *prAdapter,
 					"[SAA]Get auth SN = %d from Conn Settings\n",
 					u2AuthTransSN);
 				}
+
+#if CFG_SUPPORT_H2E
+				if (prAdapter->prGlueInfo->rWpaInfo.u4AuthAlg &
+					AUTH_TYPE_SAE) {
+					kalMemCopy(&u2AuthStatusCode,
+						&prConnSettings->aucAuthData[2],
+						AUTH_STATUS_CODE_FIELD_LEN);
+					DBGLOG(SAA, INFO,
+						"[SAA]Get auth StatusCode=%d from Conn Settings\n",
+						u2AuthStatusCode);
+				}
+#endif
+
 			}
 			/* Update Station Record - Class 1 Flag */
 			if (prStaRec->ucStaState != STA_STATE_1) {
@@ -1428,7 +1444,11 @@ void saaFsmRunEventRxAuth(IN struct ADAPTER *prAdapter,
 
 		/* Reset Send Auth/(Re)Assoc Frame Count */
 		prStaRec->ucTxAuthAssocRetryCount = 0;
-		if (u2StatusCode != STATUS_CODE_SUCCESSFUL) {
+		if ((u2StatusCode != STATUS_CODE_SUCCESSFUL)
+#if CFG_SUPPORT_H2E
+			&& (u2StatusCode != WLAN_STATUS_SAE_HASH_TO_ELEMENT)
+#endif
+		) {
 			DBGLOG(SAA, INFO,
 				"Auth Req was rejected by [" MACSTR
 				"], Status Code = %d\n",

@@ -2170,45 +2170,32 @@ void nicTxFreeDescTemplate(IN struct ADAPTER *prAdapter,
 	/* nicTxFreeDescTemplate while Filling it */
 	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_DESC);
 
-	if (prStaRec->fgIsQoS) {
-		for (ucTid = 0; ucTid < TX_DESC_TID_NUM; ucTid++) {
-			prTxDescList[ucTid] = (struct HW_MAC_TX_DESC *)
-				prStaRec->aprTxDescTemplate[ucTid];
+	for (ucTid = 0; ucTid < TX_DESC_TID_NUM; ucTid++) {
+		prTxDescList[ucTid] = (struct HW_MAC_TX_DESC *)
+			prStaRec->aprTxDescTemplate[ucTid];
 
-			if (prTxDescList[ucTid]) {
-				if (HAL_MAC_TX_DESC_IS_LONG_FORMAT(prTxDescList[ucTid]))
-					ucTxDescSizeList[ucTid] =
-						NIC_TX_DESC_LONG_FORMAT_LENGTH;
-				else
-					ucTxDescSizeList[ucTid] =
-						NIC_TX_DESC_SHORT_FORMAT_LENGTH;
-
-
-				prStaRec->aprTxDescTemplate[ucTid] = NULL;
-			}
-		}
-	} else {
-		prTxDescList[0] = (struct HW_MAC_TX_DESC *)
-			   prStaRec->aprTxDescTemplate[0];
-		for (ucTid = 0; ucTid < TX_DESC_TID_NUM; ucTid++)
-			prStaRec->aprTxDescTemplate[ucTid] = NULL;
-
-		if (prTxDescList[0]) {
-			if (HAL_MAC_TX_DESC_IS_LONG_FORMAT(prTxDescList[0]))
-				ucTxDescSizeList[0] = NIC_TX_DESC_LONG_FORMAT_LENGTH;
+		if (prTxDescList[ucTid]) {
+			if (HAL_MAC_TX_DESC_IS_LONG_FORMAT(prTxDescList[ucTid]))
+				ucTxDescSizeList[ucTid] =
+					NIC_TX_DESC_LONG_FORMAT_LENGTH;
 			else
-				ucTxDescSizeList[0] = NIC_TX_DESC_SHORT_FORMAT_LENGTH;
+				ucTxDescSizeList[ucTid] =
+					NIC_TX_DESC_SHORT_FORMAT_LENGTH;
 
+
+			prStaRec->aprTxDescTemplate[ucTid] = NULL;
 		}
 	}
 
 	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_TX_DESC);
 
 	for (ucTid = 0; ucTid < TX_DESC_TID_NUM; ucTid++) {
+		if (ucTid > 0 && prTxDescList[ucTid] == prTxDescList[ucTid-1])
+			break;
+
 		if (prTxDescList[ucTid]) {
 			kalMemFree(prTxDescList[ucTid],
 				VIR_MEM_TYPE, ucTxDescSizeList[ucTid]);
-			prTxDescList[ucTid] = NULL;
 		}
 	}
 }
@@ -2430,6 +2417,9 @@ uint32_t nicTxCmd(IN struct ADAPTER *prAdapter,
 	struct MSDU_INFO *prMsduInfo;
 	struct TX_CTRL *prTxCtrl;
 	struct sk_buff *skb;
+#if CFG_FTV_62866_PATCH
+	uint32_t ret = WLAN_STATUS_SUCCESS;
+#endif
 
 	KAL_SPIN_LOCK_DECLARATION();
 
@@ -2455,7 +2445,11 @@ uint32_t nicTxCmd(IN struct ADAPTER *prAdapter,
 		prCmdInfo->pucTxp = skb->data;
 		prCmdInfo->u4TxpLen = skb->len;
 
+#if CFG_FTV_62866_PATCH
+		ret = HAL_WRITE_TX_CMD(prAdapter, prCmdInfo, ucTC);
+#else
 		HAL_WRITE_TX_CMD(prAdapter, prCmdInfo, ucTC);
+#endif
 
 		prMsduInfo->prPacket = NULL;
 
@@ -2491,7 +2485,11 @@ uint32_t nicTxCmd(IN struct ADAPTER *prAdapter,
 		prCmdInfo->pucTxp = prMsduInfo->prPacket;
 		prCmdInfo->u4TxpLen = prMsduInfo->u2FrameLength;
 
+#if CFG_FTV_62866_PATCH
+		ret = HAL_WRITE_TX_CMD(prAdapter, prCmdInfo, ucTC);
+#else
 		HAL_WRITE_TX_CMD(prAdapter, prCmdInfo, ucTC);
+#endif
 		/* <4> Management Frame Post-Processing */
 		GLUE_DEC_REF_CNT(prTxCtrl->i4TxMgmtPendingNum);
 
@@ -2549,15 +2547,29 @@ uint32_t nicTxCmd(IN struct ADAPTER *prAdapter,
 		prCmdInfo->pucTxp = NULL;
 		prCmdInfo->u4TxpLen = 0;
 
-		HAL_WRITE_TX_CMD(prAdapter, prCmdInfo, ucTC);
+#if CFG_FTV_62866_PATCH
+		ret = HAL_WRITE_TX_CMD(prAdapter, prCmdInfo, ucTC);
 
+		DBGLOG(INIT, TRACE,
+		       "TX CMD: ID[0x%02X] SEQ[%u] SET[%u] LEN[%u] status[%x]\n",
+		       prWifiCmd->ucCID, prWifiCmd->ucSeqNum,
+		       prWifiCmd->ucSetQuery, prWifiCmd->u2Length, ret);
+#else
+		HAL_WRITE_TX_CMD(prAdapter, prCmdInfo, ucTC);
 		DBGLOG(INIT, TRACE,
 		       "TX CMD: ID[0x%02X] SEQ[%u] SET[%u] LEN[%u]\n",
 		       prWifiCmd->ucCID, prWifiCmd->ucSeqNum,
 		       prWifiCmd->ucSetQuery, prWifiCmd->u2Length);
+
+#endif
+
 	}
 
+#if CFG_FTV_62866_PATCH
+	return ret;
+#else
 	return WLAN_STATUS_SUCCESS;
+#endif
 }				/* end of nicTxCmd() */
 
 /*----------------------------------------------------------------------------*/

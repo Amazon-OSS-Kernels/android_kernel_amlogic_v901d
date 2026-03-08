@@ -46,7 +46,8 @@
 /*============================================================================*/
 /* Local Configuration */
 /*============================================================================*/
-#define VERSION "9.0.2021080101"
+
+#define VERSION "9.0.2022040701"
 
 /*============================================================================*/
 /* Function Prototype */
@@ -470,7 +471,7 @@ static void btmtk_chip_rst_disc_timo_func(void *data)
 			BTUSB_INFO("%s: No Exported Func Found [%s]", __func__, func_name);
 	} while (0);
 
-	atomic_set(&doing_reset, RESET_BT_DONE);
+	atomic_set(&doing_reset, BTMTK_RESET_DONE);
 }
 
 static void btmtk_chip_reset_timo_func(void *data)
@@ -495,8 +496,12 @@ static void btmtk_add_timer(struct timer_list *timer, void *fun, u16 sec, void *
 			return;
 		}
 		BTUSB_DBG("Add new timer");
+#if (KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE)
 		timer->function = fun;
 		timer->data = data ? (unsigned long)data : (unsigned long)NULL;
+#else
+		timer_setup(timer, fun, 0);
+#endif
 		timer->expires = jiffies + HZ * sec;
 		add_timer(timer);
 	} else {
@@ -3143,7 +3148,8 @@ static int btmtk_usb_BT_init(void)
 	btmtk_usb_set_state(BTMTK_USB_STATE_DISCONNECT);
 	USB_MUTEX_UNLOCK();
 
-#ifdef CONFIG_MP_WAKEUP_SOURCE_SYSFS_STAT
+#if (defined(LINUX_OS) && (KERNEL_VERSION(5, 4, 0) < LINUX_VERSION_CODE)) ||	\
+	(defined(ANDROID_OS) && (KERNEL_VERSION(4, 19, 0) < LINUX_VERSION_CODE))
 	g_data->woble_ws = wakeup_source_register(NULL, "btmtk_woble_wakelock");
 #else
 	g_data->woble_ws = wakeup_source_register("btmtk_woble_wakelock");
@@ -3155,9 +3161,10 @@ static int btmtk_usb_BT_init(void)
 	spin_lock_init(&g_data->txlock);
 	/* init meta buffer */
 	spin_lock_init(&(g_data->metabuffer->spin_lock.lock));
+#if (KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE)
 	init_timer(&chip_reset_timer);
 	init_timer(&g_data->chip_rst_disc_timer);
-
+#endif
 	BTUSB_INFO("%s: end", __func__);
 	return 0;
 
@@ -6420,6 +6427,7 @@ static ssize_t btmtk_usb_fops_write(struct file *file, const char __user *buf,
 	if (state != BTMTK_USB_STATE_WORKING) {
 		BTUSB_WARN_LIMITTED("%s: current is in suspend/resume/standby (%d), (pid:%d)",
 			__func__, state, current->pid);
+		msleep(10);
 		return -EAGAIN;
 	}
 
@@ -6954,8 +6962,13 @@ static int btmtk_usb_fops_open(struct inode *inode, struct file *file)
 	fstate = btmtk_fops_get_state();
 	FOPS_MUTEX_UNLOCK();
 	if (fstate == BTMTK_FOPS_STATE_OPENED) {
-		BTUSB_WARN("%s: fops opened!", __func__);
-		return 0;
+		if (need_reopen) {
+			BTUSB_WARN_LIMITTED("%s:need do fops close firstly", __func__);
+			return -EAGAIN;
+		} else {
+			BTUSB_WARN_LIMITTED("%s: fops opened!", __func__);
+			return 0;
+		}
 	}
 
 	if (fstate == BTMTK_FOPS_STATE_CLOSING) {
@@ -7882,6 +7895,13 @@ static int btmtk_usb_L0_probe(struct usb_interface *intf, const struct usb_devic
 	if (ret) {
 		BTUSB_ERR("btmtk_usb_L0_probe failed, ret %d", ret);
 		goto exit;
+	}
+
+	/*In case Bt disconnect called by usb host directly,*/
+	/*Then wifi toggel reset pin before probe*/
+	if (g_data) {
+		g_data->reset_dongle = 0;
+		g_data->reset_progress = 0;
 	}
 
 	need_reset_stack = HW_ERR_CODE_CHIP_RESET;

@@ -136,8 +136,8 @@ static const struct iw_priv_args rIwPrivTable[] = {
 	{IOCTL_GET_STRUCT, 0,
 	IW_PRIV_TYPE_CHAR | sizeof(struct NDIS_TRANSPORT_STRUCT), ""},
 
-	{IOCTL_GET_DRIVER, IW_PRIV_TYPE_CHAR | 2000, IW_PRIV_TYPE_CHAR |
-		2000, "driver"},
+	{IOCTL_GET_DRIVER, IW_PRIV_TYPE_CHAR | IW_PRIV_BUF_SIZE, 
+		IW_PRIV_TYPE_CHAR | IW_PRIV_BUF_SIZE, "driver"},
 
 #if CFG_SUPPORT_QA_TOOL
 	/* added for ATE iwpriv Command */
@@ -453,11 +453,13 @@ static const iw_handler mtk_std_handler[] = {
 
 const struct iw_handler_def wext_handler_def = {
 	.num_standard = 0,
+#ifdef CONFIG_WEXT_PRIV
 	.num_private = (__u16) sizeof(rIwPrivHandler) / sizeof(iw_handler),
 	.num_private_args = (__u16) sizeof(rIwPrivTable) /
 						sizeof(struct iw_priv_args),
 	.private = rIwPrivHandler,
 	.private_args = rIwPrivTable,
+#endif
 	.get_wireless_stats = wext_get_wireless_stats,
 	.num_standard = (__u16) sizeof(mtk_std_handler) / sizeof(iw_handler),
 	.standard = (iw_handler *) mtk_std_handler,
@@ -3508,6 +3510,8 @@ wext_set_encode_ext(IN struct net_device *prNetDev,
 	{
 
 		if ((prEnc->flags & IW_ENCODE_MODE) == IW_ENCODE_DISABLED) {
+			/* Reset flag to prevent the unexpected operation */
+			prRemoveKey->ucCtrlFlag = 0;
 			prRemoveKey->u4Length = sizeof(*prRemoveKey);
 			memcpy(prRemoveKey->arBSSID,
 			       prIWEncExt->addr.sa_data, 6);

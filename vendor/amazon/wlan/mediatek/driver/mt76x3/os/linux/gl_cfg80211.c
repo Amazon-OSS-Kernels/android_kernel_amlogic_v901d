@@ -1298,9 +1298,6 @@ int mtk_cfg80211_auth(struct wiphy *wiphy, struct net_device *ndev,
 	kalMemZero(prDetRplyInfo, sizeof(struct GL_DETECT_REPLAY_INFO));
 #endif
 
-	/* Reset WPA info */
-	prGlueInfo->rWpaInfo.u4AuthAlg = 0;
-
 	switch (req->auth_type) {
 	case NL80211_AUTHTYPE_OPEN_SYSTEM:
 		if (!(prGlueInfo->rWpaInfo.u4AuthAlg & AUTH_TYPE_OPEN_SYSTEM))
@@ -1371,10 +1368,10 @@ int mtk_cfg80211_auth(struct wiphy *wiphy, struct net_device *ndev,
 		}
 	}
 	kalMemZero(&rNewSsid, sizeof(struct PARAM_CONNECT));
+	rNewSsid.pucBssid = (uint8_t *)req->bss->bssid;
 
-	if (rNewSsid.pucBssid != (uint8_t *)req->bss->bssid) {
+	if (!EQUAL_MAC_ADDR(prConnSettings->aucBSSID, req->bss->bssid)) {
 		fgNewAuthParam = TRUE;
-		rNewSsid.pucBssid = (uint8_t *)req->bss->bssid;
 	}
 #if CFG_SUPPORT_802_11V_BSS_TRANSITION_MGT || CFG_SUPPORT_802_11R
 	DBGLOG(REQ, INFO, "SSID len %d, ssid %s, %d\n",
@@ -1407,7 +1404,7 @@ int mtk_cfg80211_auth(struct wiphy *wiphy, struct net_device *ndev,
 
 	prConnSettings->fgIsSendAssoc = FALSE;
 	if (!prConnSettings->fgIsConnInitialized || fgNewAuthParam) {
-		/* [TODO] to consider if bssid/auth_alg changed
+		/* Consider if bssid/auth_alg changed
 		 * (need to update to AIS)
 		 */
 		if (fgNewAuthParam)
@@ -3156,9 +3153,6 @@ mtk_cfg80211_testmode_get_sta_statistics(IN struct wiphy
 		return -ENOMEM;
 	}
 
-	DBGLOG(QM, TRACE, "Get [" MACSTR "] STA statistics\n",
-	       MAC2STR(prParams->aucMacAddr));
-
 	kalMemZero(&rQueryStaStatistics,
 		   sizeof(rQueryStaStatistics));
 	COPY_MAC_ADDR(rQueryStaStatistics.aucMacAddr,
@@ -4067,6 +4061,9 @@ int mtk_cfg80211_assoc(struct wiphy *wiphy,
 #if CFG_SUPPORT_802_11R
 	uint32_t u4InfoBufLen = 0;
 #endif
+#if CFG_SUPPORT_H2E
+	uint8_t fgCarryRsnxe = FALSE;
+#endif
 struct P2P_ROLE_FSM_INFO *prP2pRoleFsmInfo =
 		(struct P2P_ROLE_FSM_INFO *) NULL;
 struct P2P_CONNECTION_REQ_INFO *prConnReqInfo =
@@ -4531,6 +4528,34 @@ struct P2P_CONNECTION_REQ_INFO *prConnReqInfo =
 				0, sizeof(struct OWE_INFO_T));
 		}
 #endif
+
+#if CFG_SUPPORT_H2E
+		/* Gen RSNXE */
+		if (wextSrchDesiredWPAIE(pucIEStart,
+			req->ie_len, 0xf4, (uint8_t **) &prDesiredIE)) {
+			uint16_t u2Length = (*(prDesiredIE+1)+2);
+
+			if (u2Length <= sizeof(prConnSettings->rRsnXE)) {
+				kalMemCopy(
+					&prConnSettings->rRsnXE,
+					prDesiredIE, u2Length);
+				fgCarryRsnxe = TRUE;
+				DBGLOG(REQ, INFO,
+					"DUMP RSNXE, EID %x length %x\n",
+					*prDesiredIE, u2Length);
+				DBGLOG_MEM8(REQ, INFO,
+					&prConnSettings->rRsnXE,
+					u2Length);
+			} else {
+				DBGLOG(RSN, ERROR, "RSNXE length exceeds 2\n");
+			}
+		}
+		if (fgCarryRsnxe == FALSE) {
+			kalMemSet(&prConnSettings->rRsnXE,
+				0, sizeof(struct RSNXE));
+		}
+#endif
+
 #if CFG_SUPPORT_802_11R
 	if (prGlueInfo->prAdapter->rWifiVar
 		.rConnSettings.eAuthMode == AUTH_MODE_WPA2_FT ||

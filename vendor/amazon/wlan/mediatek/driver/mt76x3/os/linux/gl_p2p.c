@@ -960,6 +960,15 @@ u_int8_t p2pNetUnregister(struct GLUE_INFO *prGlueInfo,
 			     (iftype == NL80211_IFTYPE_STATION))) {
 #if CFG_WPS_DISCONNECT || (KERNEL_VERSION(4, 2, 0) <= CFG80211_VERSION_CODE)
 #if CFG_SUPPORT_CFG80211_AUTH
+#if CFG_FTV_WLANREMOVE_DEAUTH_NO_TXDONE
+				authSendDeauthFrame(prAdapter,
+					prP2pBssInfo,
+					NULL,
+					(struct SW_RFB *) NULL,
+					REASON_CODE_DEAUTH_LEAVING_BSS,
+					(PFN_TX_DONE_HANDLER)
+					NULL);
+#else
 				authSendDeauthFrame(prAdapter,
 					prP2pBssInfo,
 					NULL,
@@ -967,6 +976,7 @@ u_int8_t p2pNetUnregister(struct GLUE_INFO *prGlueInfo,
 					REASON_CODE_DEAUTH_LEAVING_BSS,
 					(PFN_TX_DONE_HANDLER)
 					p2pRoleFsmRunEventDeauthTxDone);
+#endif
 #else
 				cfg80211_disconnected(prRoleDev, 0, NULL, 0,
 							TRUE, GFP_KERNEL);

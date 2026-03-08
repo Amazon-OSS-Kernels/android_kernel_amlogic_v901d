@@ -117,6 +117,11 @@ static int mtk_wcn_temp_query_ctrl(void);
 struct completion rWaitForResetComp;
 struct completion* prWaitForResetComp = NULL;
 
+#if CFG_FTV_abc123_135_PATCH
+static int g_u4ProbeChipResetTimes;
+#define PROBE_CHIP_RESET_LIMIT     3
+#endif
+
 /*******************************************************************************
  *                             D A T A   T Y P E S
  *******************************************************************************
@@ -2817,6 +2822,7 @@ int set_p2p_mode_handler(struct net_device *netdev,
 	struct PARAM_CUSTOM_P2P_SET_STRUCT rSetP2P;
 	uint32_t rWlanStatus = WLAN_STATUS_SUCCESS;
 	uint32_t u4BufLen = 0;
+	uint8_t ret = FALSE;
 
 	if (!prGlueInfo)
 		return -1;
@@ -2850,9 +2856,16 @@ int set_p2p_mode_handler(struct net_device *netdev,
 	if ((rSetP2P.u4Enable)
 	    && (prGlueInfo->prAdapter->fgIsP2PRegistered)
 	    && (kalIsResetting() == FALSE))
-		p2pNetRegister(prGlueInfo, FALSE);
+		ret = p2pNetRegister(prGlueInfo, FALSE);
 
+#if CFG_RESET_DUE_TO_REG_NETDEV_FAIL
+	if(ret == TRUE)
+		return 0;
+	else
+		return -1;
+#else
 	return 0;
+#endif
 }
 
 #if CFG_SUPPORT_EASY_DEBUG
@@ -3724,11 +3737,14 @@ static int32_t wlanProbe(void *pvData, void *pvDriverData)
 
 		prGlueInfo->main_thread = kthread_run(main_thread,
 				prGlueInfo->prDevHandler, "main_thread");
+		DBGLOG(INIT, STATE, "main_thread %p\n", prGlueInfo->main_thread);
 #if CFG_SUPPORT_MULTITHREAD
 		prGlueInfo->hif_thread = kthread_run(hif_thread,
 				prGlueInfo->prDevHandler, "hif_thread");
+		DBGLOG(INIT, STATE, "hif_thread %p\n", prGlueInfo->hif_thread);
 		prGlueInfo->rx_thread = kthread_run(rx_thread,
 				prGlueInfo->prDevHandler, "rx_thread");
+		DBGLOG(INIT, STATE, "rx_thread %p\n", prGlueInfo->rx_thread);
 		HAL_AGG_THREAD(prGlueInfo->prAdapter);
 #endif
 
@@ -3771,7 +3787,8 @@ static int32_t wlanProbe(void *pvData, void *pvDriverData)
 			    WLAN_STATUS_SUCCESS){
 				DBGLOG(INIT, ERROR,
 					"wlanProbe: downloadBufferBin fail\n");
-				return -1;
+				i4Status = -EIO;
+				break;
 			}
 		}
 #endif
@@ -3796,8 +3813,10 @@ static int32_t wlanProbe(void *pvData, void *pvDriverData)
 					   TRUE, TRUE, TRUE, &u4SetInfoLen);
 
 			if (rStatus != WLAN_STATUS_SUCCESS) {
-				DBGLOG(INIT, WARN, "set MAC addr fail 0x%x\n",
+				DBGLOG(INIT, ERROR, "set MAC addr fail 0x%x\n",
 								rStatus);
+				i4Status = -ENXIO;
+				break;
 			} else {
 				kalMemCopy(prGlueInfo->prDevHandler->dev_addr,
 					   &MacAddr.sa_data, ETH_ALEN);
@@ -3830,10 +3849,12 @@ static int32_t wlanProbe(void *pvData, void *pvDriverData)
 							NETIF_F_IPV6_CSUM |
 							NETIF_F_RXCSUM;
 			} else {
-				DBGLOG(INIT, WARN,
+				DBGLOG(INIT, ERROR,
 				       "set HW checksum offload fail 0x%x\n",
 				       rStatus);
 				prAdapter->fgIsSupportCsumOffload = FALSE;
+				i4Status = -ENXIO;
+				break;
 			}
 		}
 #endif
@@ -3911,10 +3932,16 @@ static int32_t wlanProbe(void *pvData, void *pvDriverData)
 				DBGLOG(INIT, INFO,
 					"%s: p2p device registered\n",
 					__func__);
-			else
+			else {
 				DBGLOG(INIT, ERROR,
 					"%s: Failed to register p2p device\n",
 					__func__);
+#if CFG_RESET_DUE_TO_REG_NETDEV_FAIL
+				i4Status = -ENXIO;
+				eFailReason = NET_REGISTER_FAIL;
+				break;
+#endif
+			}
 		}
 #endif
 #if (CFG_MET_PACKET_TRACE_SUPPORT == 1)
@@ -4037,6 +4064,10 @@ static int32_t wlanProbe(void *pvData, void *pvDriverData)
 #ifdef CONFIG_PM_SLEEP
 		register_pm_notifier(&pm_resume_notifier_func);
 #endif
+
+#if CFG_FTV_abc123_135_PATCH
+		g_u4ProbeChipResetTimes = 0;
+#endif
 	} else {
 		DBGLOG(INIT, ERROR, "wlanProbe: probe failed, reason:%d\n",
 		       eFailReason);
@@ -4064,6 +4095,14 @@ static int32_t wlanProbe(void *pvData, void *pvDriverData)
 						netdev_priv(prWdev->netdev)));
 		/* fallthrough */
 		case BUS_SET_IRQ_FAIL:
+#if CFG_FTV_abc123_135_PATCH
+			if (g_u4ProbeChipResetTimes < PROBE_CHIP_RESET_LIMIT) {
+				DBGLOG(INIT, ERROR, "wlanProbe: trigger whole reset\n");
+				g_u4ProbeChipResetTimes++;
+				eResetReason = RST_PROBE_FAIL;
+				GL_RESET_TRIGGER(prAdapter, RST_FLAG_CHIP_RESET);
+			}
+#endif
 			wlanWakeLockUninit(prGlueInfo);
 			wlanNetDestroy(prWdev);
 			/* prGlueInfo->prAdapter is released in
@@ -4123,6 +4162,12 @@ static void wlanRemove(void)
 
 	prWaitForResetComp = &rWaitForResetComp;
 
+#if CFG_FTV_abc123_135_PATCH
+	// For corner case when HIF bus initiated disconnect / connect to reset
+	// the bus
+	fgIsResetting = TRUE;
+#endif
+
 	if(waitForResetCompInit) {
 		reinit_completion(prWaitForResetComp);
 	}
@@ -4137,6 +4182,9 @@ static void wlanRemove(void)
 	ASSERT(u4WlanDevNum <= CFG_MAX_WLAN_DEVICES);
 	if (u4WlanDevNum == 0) {
 		DBGLOG(INIT, ERROR, "u4WlanDevNum = 0\n");
+#if CFG_FTV_abc123_135_PATCH
+		fgIsResetting = FALSE;
+#endif
 		return;
 	}
 #if (CFG_ENABLE_WIFI_DIRECT && CFG_MTK_ANDROID_WMT)

@@ -1867,18 +1867,30 @@ uint32_t wlanDownloadFW(IN struct ADAPTER *prAdapter)
 
 	HAL_ENABLE_FWDL(prAdapter, TRUE);
 
-	if (prFwDlOps->downloadPatch)
-		prFwDlOps->downloadPatch(prAdapter);
+	if (prFwDlOps->downloadPatch) {
+		if(prFwDlOps->downloadPatch(prAdapter) != WLAN_STATUS_SUCCESS) {
+			DBGLOG(INIT, ERROR, "Patch download failed\n");
+			HAL_ENABLE_FWDL(prAdapter, FALSE);
+			return WLAN_STATUS_FAILURE;
+		}
+	}
 
 	DBGLOG(INIT, INFO, "FW download Start\n");
 
 	if (prFwDlOps->downloadFirmware) {
 		rStatus = prFwDlOps->downloadFirmware(prAdapter,
 						      IMG_DL_IDX_N9_FW);
+		if(rStatus != WLAN_STATUS_SUCCESS) {
+			DBGLOG(INIT, ERROR, "N9 download failed\n");
+		}
+
 		if (prChipInfo->is_support_cr4
 		    && rStatus == WLAN_STATUS_SUCCESS)
 			rStatus = prFwDlOps->downloadFirmware(prAdapter,
 						IMG_DL_IDX_CR4_FW);
+		if(rStatus != WLAN_STATUS_SUCCESS) {
+			DBGLOG(INIT, ERROR, "CR4 download failed\n");
+		}
 	} else
 		DBGLOG(INIT, WARN, "Without downlaod firmware Ops\n");
 
@@ -1893,6 +1905,7 @@ uint32_t wlanDownloadPatch(IN struct ADAPTER *prAdapter)
 {
 	uint32_t u4FwSize = 0;
 	void *prFwBuffer = NULL;
+	uint32_t u4StartOffset, u4Addr, u4Len, u4DataMode;
 #if CFG_SUPPORT_COMPRESSION_FW_OPTION
 	uint8_t ucIsCompressed;
 #endif
@@ -1913,6 +1926,9 @@ uint32_t wlanDownloadPatch(IN struct ADAPTER *prAdapter)
 	}
 
 	if (wlanPatchIsDownloaded(prAdapter)) {
+		wlanImageSectionGetPatchInfo(prAdapter, prFwBuffer,
+						 u4FwSize, &u4StartOffset,
+						 &u4Addr, &u4Len, &u4DataMode);
 		kalFirmwareImageUnmapping(prAdapter->prGlueInfo, NULL,
 					  prFwBuffer);
 		DBGLOG(INIT, INFO, "No need to download patch\n");
@@ -2000,12 +2016,14 @@ uint32_t fwDlGetFwdlInfo(struct ADAPTER *prAdapter,
 						   pcBuf + u4Offset,
 						   i4TotalLen - u4Offset);
 
+#if 0
 	if (!prVerInfo->fgPatchIsDlByDrv) {
 		u4Offset += snprintf(pcBuf + u4Offset,
 				     i4TotalLen - u4Offset,
 				     "Patch is not downloaded by driver, read patch binary\n");
 		wlanGetPatchInfo(prAdapter);
 	}
+#endif
 
 	kalMemZero(aucBuf, 32);
 	kalMemZero(aucDate, 32);

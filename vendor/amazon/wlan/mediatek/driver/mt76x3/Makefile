@@ -352,10 +352,12 @@ else
 	ccflags-y += -DCFG_DFS_NEWCH_DFS_FORCE_DISCONNECT=0
 endif
 
-ifneq ($(CFG_MTK_ONE_IMAGE),)
 ifneq ($(CFG_WLAN_RM_MUTEX_SUPPORT),)
 	ccflags-y += -DCFG_WLAN_RM_MUTEX_SUPPORT=$(CFG_WLAN_RM_MUTEX_SUPPORT)
 endif
+
+ifneq ($(CFG_FTV_64888_PATCH),)
+ccflags-y += -DCFG_FTV_64888_PATCH=$(CFG_FTV_64888_PATCH)
 endif
 
 ifneq ($(CFG_CFG80211_VERSION),)
@@ -508,6 +510,26 @@ endif
 
 ifeq ($(CFG_STR_DEAUTH_DELAY), y)
 ccflags-y += -DCFG_STR_DEAUTH_DELAY
+endif
+
+ifneq ($(CFG_NUM_OF_RX_BA_AGREEMENTS),)
+ccflags-y += -DCFG_NUM_OF_RX_BA_AGREEMENTS=$(CFG_NUM_OF_RX_BA_AGREEMENTS)
+endif
+
+ifneq ($(CFG_FTV_62866_PATCH),)
+ccflags-y += -DCFG_FTV_62866_PATCH=$(CFG_FTV_62866_PATCH)
+endif
+
+ifneq ($(CFG_FTV_60720_PATCH),)
+ccflags-y += -DCFG_FTV_60720_PATCH=$(CFG_FTV_60720_PATCH)
+endif
+
+ifneq ($(CFG_FTV_abc123_135_PATCH),)
+ccflags-y += -DCFG_FTV_abc123_135_PATCH=$(CFG_FTV_abc123_135_PATCH)
+endif
+
+ifneq ($(CFG_RESET_DUE_TO_REG_NETDEV_FAIL),)
+ccflags-y += -DCFG_RESET_DUE_TO_REG_NETDEV_FAIL=$(CFG_RESET_DUE_TO_REG_NETDEV_FAIL)
 endif
 
 # ---------------------------------------------------
@@ -712,4 +734,8 @@ all: modules
 
 clean:
 	$(MAKE) -C $(KERNEL_SRC) M=$(M) clean
+else
+# TODO: MTK
+ccflags-y += -Wno-vla
+#ccflags-y += -Wno-vla -Wno-address
 endif

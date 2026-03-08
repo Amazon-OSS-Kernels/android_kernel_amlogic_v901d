@@ -552,11 +552,15 @@ struct PARAM_KEY {
 	/* Following add to change the original windows structure */
 };
 
+/* for more remove key control (ucCtrlFlag) */
+#define FLAG_RM_KEY_CTRL_WO_OID     BIT(0)	/* not OID operation */
+
 struct PARAM_REMOVE_KEY {
 	uint32_t u4Length;	/*!< Length of structure */
 	uint32_t u4KeyIndex;	/*!< KeyID */
 	uint8_t arBSSID[PARAM_MAC_ADDR_LEN];	/*!< MAC address */
 	uint8_t ucBssIdx;
+	uint8_t ucCtrlFlag;	/* Ctrl Flag for RM key CMD */
 };
 
 /*! \brief Default key */

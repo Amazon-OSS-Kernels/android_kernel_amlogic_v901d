@@ -1836,7 +1836,11 @@ u_int8_t kalDevKickData(IN struct GLUE_INFO *prGlueInfo)
 * \retval FALSE         operation fail
 */
 /*----------------------------------------------------------------------------*/
+#if CFG_FTV_62866_PATCH
+u_int32_t kalDevWriteCmd(IN struct GLUE_INFO *prGlueInfo, IN struct CMD_INFO *prCmdInfo, IN uint8_t ucTC)
+#else
 u_int8_t kalDevWriteCmd(IN struct GLUE_INFO *prGlueInfo, IN struct CMD_INFO *prCmdInfo, IN uint8_t ucTC)
+#endif
 {
 	struct ADAPTER *prAdapter = prGlueInfo->prAdapter;
 /*	P_GL_HIF_INFO_T prHifInfo = &prGlueInfo->rHifInfo; */

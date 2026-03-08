@@ -144,6 +144,10 @@ struct APPEND_VAR_IE_ENTRY txAssocReqIETable[] = {
 #endif
 	{(ELEM_HDR_LEN + ELEM_MAX_LEN_WPA), NULL, rsnGenerateWPAIE}
 	,			/* 221 */
+#if CFG_SUPPORT_H2E
+	{0, rsnCalRSNXELen, rsnGenerateRSNXE}
+	,			/* 244 */
+#endif
 #if CFG_SUPPORT_OWE
 	{0, rsnCalOweIELen, rsnGenerateOWEIE} /* 255 */
 #endif

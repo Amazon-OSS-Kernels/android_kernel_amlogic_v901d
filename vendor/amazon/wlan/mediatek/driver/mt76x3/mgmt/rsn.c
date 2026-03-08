@@ -4023,3 +4023,86 @@ uint32_t rsnCalOweIELen(IN struct ADAPTER *prAdapter,
 }
 #endif
 
+#if CFG_SUPPORT_H2E
+/*----------------------------------------------------------------------------*/
+/*!
+ *
+ * \brief This routine is called to generate RSNXE for
+ *        associate request frame.
+ *
+ * \param[in]  prAdapter	The Selected BSS description
+ * \param[in]  prMsduInfo	MSDU packet buffer
+ *
+ * \retval N/A
+ *
+ * \note
+ *      Called by: AIS module, Associate request
+ */
+/*----------------------------------------------------------------------------*/
+void rsnGenerateRSNXE(IN struct ADAPTER *prAdapter,
+		      IN OUT struct MSDU_INFO *prMsduInfo)
+{
+	uint8_t *pucBuffer;
+	uint8_t ucLength;
+	struct CONNECTION_SETTINGS *prConnSettings;
+
+	prConnSettings =
+		&(prAdapter->rWifiVar.rConnSettings);
+
+	ucLength = prConnSettings->rRsnXE.ucLength + 2;
+
+	DBGLOG(RSN, INFO, "rsnGenerateRSNXE\n");
+
+	if (prConnSettings->rRsnXE.ucLength == 0)
+		return;
+
+	ASSERT(prMsduInfo);
+
+	pucBuffer = (uint8_t *) ((unsigned long)
+				 prMsduInfo->prPacket + (unsigned long)
+				 prMsduInfo->u2FrameLength);
+
+	ASSERT(pucBuffer);
+
+
+	/* if (eNetworkId != NETWORK_TYPE_AIS_INDEX) */
+	/* return; */
+
+	kalMemCopy(pucBuffer, &(prConnSettings->rRsnXE),
+		   ucLength);
+	prMsduInfo->u2FrameLength += IE_SIZE(pucBuffer);
+
+	DBGLOG_MEM8(RSN, INFO, pucBuffer, IE_SIZE(pucBuffer));
+
+	return;
+
+}
+
+/*----------------------------------------------------------------------------*/
+/*!
+ *
+ * \brief This routine is called to calculate RSNXE length for
+ *        associate request frame.
+ *
+ * \param[in]  prAdapter	Major data structure for driver operation
+ * \param[in]  ucBssIndex	unused for this function
+ * \param[in]  prStaRec		unused for this function
+ *
+ * \retval The append WPA IE length
+ *
+ * \note
+ *      Called by: AIS module, Associate request
+ */
+/*----------------------------------------------------------------------------*/
+uint32_t rsnCalRSNXELen(IN struct ADAPTER *prAdapter,
+	IN uint8_t ucBssIndex, struct STA_RECORD *prStaRec)
+{
+	struct CONNECTION_SETTINGS *prConnSettings;
+
+	prConnSettings = &(prAdapter->rWifiVar.rConnSettings);
+	if (prConnSettings->rRsnXE.ucLength != 0)
+		return prConnSettings->rRsnXE.ucLength + 2;
+
+	return 0;
+}
+#endif

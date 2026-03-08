@@ -805,10 +805,10 @@ struct CMD_WOWLAN_PARAM {
 	uint8_t		ucScenarioID; /* WOW/WOBLE/Proximity */
 	uint8_t		ucBlockCount;
 	uint8_t		ucBssid;
-	uint8_t		aucReserved1[1];
+	uint8_t		mdns_wow_pattern_len;
 	struct CMD_WAKE_HIF astWakeHif[2];
 	struct WOW_PORT	stWowPort;
-	uint8_t		aucReserved2[32];
+	uint8_t		mdns_wow_pattern[MDNS_NAME_MAX_LEN];
 };
 
 struct EVENT_WOWLAN_NOTIFY {

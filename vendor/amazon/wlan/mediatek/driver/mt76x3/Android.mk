@@ -60,6 +60,9 @@ LOCAL_KERNEL_CROSS_COMPILE_76x3 := $(KERNEL_CROSS_COMPILE)
 ifeq ($(TARGET_BOARD_PLATFORM), $(filter m7322 m7632 m7332 mt5889, $(TARGET_BOARD_PLATFORM)))
 LOCAL_KERNEL_CROSS_COMPILE_76x3 := $(ROOTDIR)/prebuilts/gcc/linux-x86/aarch64/linaro-aarch64_linux-2014.09/bin/aarch64-linux-gnu-
 endif
+ifeq ($(TARGET_BOARD_PLATFORM), $(filter abc123, $(TARGET_BOARD_PLATFORM)))
+LOCAL_KERNEL_CROSS_COMPILE_76x3 := $(LOCAL_PATH)/../../../../../../vendor/amlogic/common/tools/aarch64/gcc-linaro-aarch64-linux-gnu-4.9-2014.09_linux/bin/aarch64-linux-gnu-
+endif
 
 #current parameter name for target arch on VSB is $(TARGET_ARCH)
 ifeq ($(TARGET_KERNEL_ARCH),)

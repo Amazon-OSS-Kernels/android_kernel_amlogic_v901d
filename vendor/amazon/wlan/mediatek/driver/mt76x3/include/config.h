@@ -514,7 +514,10 @@
 #define CFG_RX_MIN_PKT_SIZE	10 /*!< 802.11 Control Frame is 10 bytes */
 
 /*! RX BA capability */
+/* If not set in project.config, set default 10. */
+#ifndef CFG_NUM_OF_RX_BA_AGREEMENTS
 #define CFG_NUM_OF_RX_BA_AGREEMENTS             10
+#endif
 #if CFG_M0VE_BA_TO_DRIVER
 #define CFG_RX_BA_MAX_WINSIZE                   64
 #endif
@@ -1320,6 +1323,13 @@
 #define CFG_SUPPORT_SER			1
 #endif
 
+/*------------------------------------------------------------------------------
+ * Support H2E
+ *------------------------------------------------------------------------------
+ */
+#ifndef CFG_SUPPORT_H2E
+#define CFG_SUPPORT_H2E			1
+#endif
 
 /*------------------------------------------------------------------------------
  * Support thermal API
@@ -1413,6 +1423,10 @@
 #define CFG_abc123_CMD_BUF_DEBUG 0
 #endif
 
+#ifndef CFG_FTV_62866_PATCH
+#define CFG_FTV_62866_PATCH 0
+#endif
+
 /*------------------------------------------------------------------------------
  * Support CFG_SUPPORT_INBAND_WAKEUP
  *------------------------------------------------------------------------------
@@ -1425,6 +1439,22 @@
 
 #ifndef CFG_FTV_WLANREMOVE_DEAUTH_NO_TXDONE
 #define CFG_FTV_WLANREMOVE_DEAUTH_NO_TXDONE 0
+#endif
+
+#ifndef CFG_FTV_60720_PATCH
+#define CFG_FTV_60720_PATCH 0
+#endif
+
+#ifndef CFG_FTV_abc123_135_PATCH
+#define CFG_FTV_abc123_135_PATCH 0
+#endif
+
+#ifndef CFG_FTV_64888_PATCH
+#define CFG_FTV_64888_PATCH 0
+#endif
+
+#ifndef CFG_RESET_DUE_TO_REG_NETDEV_FAIL
+#define CFG_RESET_DUE_TO_REG_NETDEV_FAIL 0
 #endif
 
 /*******************************************************************************

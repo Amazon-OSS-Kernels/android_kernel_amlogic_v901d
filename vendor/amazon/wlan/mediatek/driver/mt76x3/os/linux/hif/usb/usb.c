@@ -449,6 +449,13 @@ u_int8_t mtk_usb_vendor_request(IN struct GLUE_INFO *prGlueInfo, IN uint8_t uEnd
 
 	mutex_unlock(&prHifInfo->vendor_req_sem);
 
+#if CFG_FTV_abc123_135_PATCH
+	if (ret != TransferBufferLength) {
+		DBGLOG(REQ, ERROR, "USB bus failure, trigger chip reset\n");
+		GL_RESET_TRIGGER(prGlueInfo->prAdapter, RST_FLAG_CHIP_RESET);
+	}
+#endif
+
 	return (ret == TransferBufferLength) ? 0 : ret;
 }
 
@@ -1645,11 +1652,18 @@ u_int8_t kalDevKickData(IN struct GLUE_INFO *prGlueInfo)
 * \retval FALSE         operation fail
 */
 /*----------------------------------------------------------------------------*/
+#if CFG_FTV_62866_PATCH
+u_int32_t kalDevWriteCmd(IN struct GLUE_INFO *prGlueInfo, IN struct CMD_INFO *prCmdInfo, IN uint8_t ucTC)
+{
+	return halTxUSBSendCmd(prGlueInfo, ucTC, prCmdInfo);
+}
+#else
 u_int8_t kalDevWriteCmd(IN struct GLUE_INFO *prGlueInfo, IN struct CMD_INFO *prCmdInfo, IN uint8_t ucTC)
 {
 	halTxUSBSendCmd(prGlueInfo, ucTC, prCmdInfo);
 	return TRUE;
 }
+#endif
 
 void glGetDev(void *ctx, struct device **dev)
 {

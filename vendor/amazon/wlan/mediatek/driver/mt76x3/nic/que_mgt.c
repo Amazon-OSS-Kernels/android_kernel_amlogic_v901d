@@ -875,10 +875,10 @@ struct SW_RFB *qmFlushStaRxQueue(IN struct ADAPTER *prAdapter,
 	IN uint32_t u4StaRecIdx, IN uint32_t u4Tid)
 {
 	/* UINT_32 i; */
-	struct SW_RFB *prSwRfbListHead;
-	struct SW_RFB *prSwRfbListTail;
-	struct RX_BA_ENTRY *prReorderQueParm;
-	struct STA_RECORD *prStaRec;
+	struct SW_RFB *prSwRfbListHead = NULL;
+	struct SW_RFB *prSwRfbListTail = NULL;
+	struct RX_BA_ENTRY *prReorderQueParm = NULL;
+	struct STA_RECORD *prStaRec = NULL;
 
 	DBGLOG(QM, TRACE, "QM: Enter qmFlushStaRxQueues(%u)\n", u4StaRecIdx);
 
@@ -894,7 +894,8 @@ struct SW_RFB *qmFlushStaRxQueue(IN struct ADAPTER *prAdapter,
 #endif
 
 	/* Obtain the RX BA Entry pointer */
-	prReorderQueParm = ((prStaRec->aprRxReorderParamRefTbl)[u4Tid]);
+	if (u4Tid < CFG_RX_MAX_BA_TID_NUM)
+		prReorderQueParm = ((prStaRec->aprRxReorderParamRefTbl)[u4Tid]);
 
 	/* Note: For each queued packet,
 	 * prCurrSwRfb->eDst equals RX_PKT_DESTINATION_HOST
@@ -3341,8 +3342,19 @@ struct SW_RFB *qmHandleRxPackets(IN struct ADAPTER *prAdapter,
 			 * enqueued into the reordering queue in the STA_REC
 			 * rather than into the rReturnedQue.
 			 */
-			qmProcessPktWithReordering(prAdapter, prCurrSwRfb,
-				prReturnedQue);
+			if (prCurrSwRfb->ucTid >= CFG_RX_MAX_BA_TID_NUM) {
+				log_dbg(QM, ERROR,
+					"TID from RXD = %d, out of range !!!\n",
+					prCurrSwRfb->ucTid);
+				DBGLOG_MEM8(QM, ERROR,
+					prCurrSwRfb->pucRecvBuff,
+					HAL_RX_STATUS_GET_RX_BYTE_CNT(
+					prRxStatus));
+				QUEUE_INSERT_TAIL(prReturnedQue,
+					(struct QUE_ENTRY *) prCurrSwRfb);
+			} else
+				qmProcessPktWithReordering(prAdapter,
+					prCurrSwRfb, prReturnedQue);
 
 		} else if (prCurrSwRfb->fgDataFrame) {
 			/* Check Class Error */
@@ -3351,7 +3363,8 @@ struct SW_RFB *qmHandleRxPackets(IN struct ADAPTER *prAdapter,
 				prCurrSwRfb->prStaRec) == TRUE)) {
 				struct RX_BA_ENTRY *prReorderQueParm = NULL;
 
-				if (!fgIsBMC && fgIsHTran &&
+				if ((prCurrSwRfb->ucTid < CFG_RX_MAX_BA_TID_NUM)
+					&& !fgIsBMC && fgIsHTran &&
 					(HAL_RX_STATUS_GET_FRAME_CTL_FIELD(
 					prCurrSwRfb->prRxStatusGroup4) &
 					MASK_FRAME_TYPE) != MAC_FRAME_DATA) {
@@ -3671,7 +3684,7 @@ u_int8_t qmAmsduAttackDetection(IN struct ADAPTER *prAdapter,
 	}
 
 	/* 802.11 header RA */
-	ucBssIndex = secGetBssIdxByWlanIdx(prAdapter, prSwRfb->ucWlanIdx);
+	ucBssIndex = prSwRfb->prStaRec->ucBssIndex;
 	prBssInfo = GET_BSS_INFO_BY_INDEX(prAdapter, ucBssIndex);
 	pucRaAddr = &prBssInfo->aucOwnMacAddr[0];
 
@@ -3770,7 +3783,6 @@ void qmProcessPktWithReordering(IN struct ADAPTER *prAdapter,
 	/* We should have STA_REC here */
 	prStaRec = prSwRfb->prStaRec;
 	ASSERT(prStaRec);
-	ASSERT(prSwRfb->ucTid < CFG_RX_MAX_BA_TID_NUM);
 
 	prRxStatus = prSwRfb->prRxStatus;
 
@@ -5152,11 +5164,11 @@ u_int8_t qmAddRxBaEntry(IN struct ADAPTER *prAdapter,
 
 	ASSERT(ucStaRecIdx < CFG_STA_REC_NUM);
 
-	if (ucStaRecIdx >= CFG_STA_REC_NUM) {
+	if (ucStaRecIdx >= CFG_STA_REC_NUM || ucTid >= CFG_RX_MAX_BA_TID_NUM) {
 		/* Invalid STA_REC index, discard the event packet */
 		DBGLOG(QM, WARN,
-			"QM: (WARNING) RX ADDBA Event for a invalid ucStaRecIdx = %d\n",
-			ucStaRecIdx);
+			"QM: (WARNING) RX ADDBA Event for a invalid ucStaRecIdx = %d, ucTID=%d\n",
+			ucStaRecIdx, ucTid);
 		return FALSE;
 	}
 
@@ -5235,7 +5247,7 @@ void qmDelRxBaEntry(IN struct ADAPTER *prAdapter,
 	IN uint8_t ucStaRecIdx, IN uint8_t ucTid,
 	IN u_int8_t fgFlushToHost)
 {
-	struct RX_BA_ENTRY *prRxBaEntry;
+	struct RX_BA_ENTRY *prRxBaEntry = NULL;
 	struct STA_RECORD *prStaRec;
 	struct SW_RFB *prFlushedPacketList = NULL;
 	struct QUE_MGT *prQM = &prAdapter->rQM;

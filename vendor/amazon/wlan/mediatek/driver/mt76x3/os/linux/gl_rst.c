@@ -216,12 +216,28 @@ u_int8_t glResetTrigger(struct ADAPTER *prAdapter,
 	u_int8_t fgResult = TRUE;
 	uint16_t u2FwOwnVersion;
 	uint16_t u2FwPeerVersion;
+#if CFG_FTV_60720_PATCH
+	struct GLUE_INFO *prGlueInfo = wifi_rst.prGlueInfo;
+#endif
 
 	dump_stack();
 	if (kalIsResetting())
 		return fgResult;
 
 	fgIsResetting = TRUE;
+
+#if CFG_FTV_60720_PATCH
+	if(prGlueInfo == NULL) {
+		DBGLOG(INIT, ERROR, "prGlueInfo is NULL\n");
+		return FALSE;
+	}
+
+	if (!completion_done(&prGlueInfo->rPendComp)) {
+		complete(&prGlueInfo->rPendComp);
+		DBGLOG(INIT, ERROR, "release pending kalIoctl operation\n");
+	}
+#endif
+
 	if (eResetReason != RST_BT_TRIGGER)
 		DBGLOG(INIT, STATE, "[SER][L0] wifi trigger eResetReason=%d\n",
 								eResetReason);
@@ -236,6 +252,9 @@ u_int8_t glResetTrigger(struct ADAPTER *prAdapter,
 	if (prAdapter == NULL) {
 		prAdapter = wifi_rst.prGlueInfo->prAdapter;
 		if (prAdapter == NULL) {
+#if CFG_FTV_abc123_135_PATCH
+			fgIsResetting = FALSE;
+#endif
 			DBGLOG(INIT, ERROR,
 				"[SER][L0] Adapter is null, stop reset flow\n");
 			return fgResult;
@@ -262,6 +281,9 @@ u_int8_t glResetTrigger(struct ADAPTER *prAdapter,
 	wifi_rst.rst_trigger_flag = u4RstFlag;
 	schedule_work(&(wifi_rst.rst_trigger_work));
 #else
+#if CFG_FTV_abc123_135_PATCH
+	wifi_rst.rst_trigger_flag = u4RstFlag;
+#endif
 	wifi_rst.prGlueInfo = prAdapter->prGlueInfo;
 	schedule_work(&(wifi_rst.rst_work));
 #endif
@@ -297,15 +319,53 @@ static void mtk_wifi_reset(struct work_struct *work)
 						struct RESET_STRUCT, rst_work);
 	u_int8_t fgResult = FALSE;
 	u_int8_t retry_cnt = 0;
+#if CFG_FTV_abc123_135_PATCH
+	u_int8_t force_reset = 0;
+#endif
 
 #if CFG_WMT_RESET_API_SUPPORT
 	wifi_reset_end(rst->rst_data);
+#else
+
+#if CFG_FTV_abc123_135_PATCH
+	if (wifi_rst.rst_trigger_flag & RST_FLAG_DO_CORE_DUMP) {
+		force_reset = 0;
+	}
+	else {
+		force_reset = 1;
+	}
+
+	fgResult = rst_L0_notify_step1(force_reset);
+
+	while(fgResult == BT_RESET_NOT_READY) {
+		DBGLOG(INIT, ERROR, "BT not ready for reset step 1 yet\n");
+
+		kalMsleep(500);
+		if(retry_cnt < BT_RESET_NOTIFY_MAX_RETRY) {
+			/*
+				corner case where wlanRemove() is called before this reset can
+				startl wlanRemve() maybe called by rmmod or bus disconnect
+			*/
+			if (kalIsHalted()) {
+				DBGLOG(INIT, ERROR, "device is halted, skip polling BT\n");
+				return;
+			}
+			fgResult = rst_L0_notify_step1(force_reset);
+			retry_cnt++;
+		}
+		else {
+			DBGLOG(INIT, ERROR,
+				"BT not ready for reset step 1 => give up\n");
+			force_reset = 1;
+			fgResult = rst_L0_notify_step1(force_reset);
+			break;
+		}
+	}
 #else
 	fgResult = rst_L0_notify_step1(0);
 
 	while(fgResult == BT_RESET_NOT_READY) {
 		DBGLOG(INIT, ERROR, "BT not ready for reset step 1 yet\n");
-
 		if(retry_cnt < BT_RESET_NOTIFY_MAX_RETRY) {
 			kalMsleep(500);
 			fgResult = rst_L0_notify_step1(0);
@@ -318,8 +378,38 @@ static void mtk_wifi_reset(struct work_struct *work)
 		}
 	}
 
+#endif
+
 	wait_core_dump_end();
 
+#if CFG_FTV_abc123_135_PATCH
+	if(fgResult == BT_RESET_OK) {
+		fgResult = rst_L0_notify_step2();
+
+		while(fgResult == BT_RESET_NOT_READY) {
+			DBGLOG(INIT, ERROR, "BT not ready for reset step 2 yet\n");
+
+			if(retry_cnt < BT_RESET_NOTIFY_MAX_RETRY) {
+				kalMsleep(500);
+			/*
+				corner case where wlanRemove() is called before this reset can
+				startl wlanRemve() maybe called by rmmod or bus disconnect
+			*/
+				if (kalIsHalted()) {
+					DBGLOG(INIT, ERROR, "device is halted, skip polling BT\n");
+					return;
+				}
+				fgResult = rst_L0_notify_step2();
+				retry_cnt++;
+			}
+			else {
+				DBGLOG(INIT, ERROR,
+					"BT not ready for reset step 2 => give up\n");
+				break;
+			}
+		}
+	}
+#else
 	fgResult = rst_L0_notify_step2();
 
 	while(fgResult == BT_RESET_NOT_READY) {
@@ -327,6 +417,7 @@ static void mtk_wifi_reset(struct work_struct *work)
 		kalMsleep(500);
 		fgResult = rst_L0_notify_step2();
 	}
+#endif
 
 #if CFG_CHIP_RESET_HANG
 	if (fgIsResetHangState == SER_L0_HANG_RST_NONE)

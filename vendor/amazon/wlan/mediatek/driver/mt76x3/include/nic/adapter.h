@@ -279,6 +279,9 @@ struct CONNECTION_SETTINGS {
 	/* for OWE info store, when upper layer set rsn info */
 	struct OWE_INFO_T rOweInfo;
 #endif
+#if CFG_SUPPORT_H2E
+	struct RSNXE rRsnXE;
+#endif
 };
 
 enum ENUM_OP_NOTIFY_STATE_T {
@@ -1586,6 +1589,8 @@ struct ADAPTER {
 #if CFG_WOW_SUPPORT
 	struct WOW_CTRL	rWowCtrl;
 	uint8_t mdns_offload_enable;
+	uint8_t mdns_wow_pattern_len;
+	uint8_t mdns_wow_pattern[WLAN_CFG_VALUE_LEN_MAX];
 #endif
 
 #if CFG_SUPPORT_WOW_EINT

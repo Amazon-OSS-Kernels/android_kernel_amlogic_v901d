@@ -935,6 +935,57 @@ void secPrivacyFreeSta(IN struct ADAPTER *prAdapter,
 
 /*----------------------------------------------------------------------------*/
 /*!
+ * \brief This routine is used to clear the group WEP key
+ *
+ * \param[in] prAdapter Pointer to the Adapter structure
+ * \param[in] ucBssIndex The BSS index
+ * \param[in] u4KeyId The key index
+ *
+ * \note
+ */
+/*----------------------------------------------------------------------------*/
+
+static inline uint32_t secRemoveBmcWepKey(IN struct ADAPTER *prAdapter,
+					  IN uint8_t ucBssIndex,
+					  IN uint32_t u4KeyId)
+{
+	struct PARAM_REMOVE_KEY rRemoveKey;
+	uint32_t u4SetLen = 0;
+	uint32_t u4Ret;
+
+	DBGLOG(RSN, INFO, "BssIdx=%d, KeyId=%d\n", ucBssIndex, u4KeyId);
+
+	if (prAdapter->rAcpiState == ACPI_STATE_D3) {
+		DBGLOG(REQ, WARN,
+		       "Fail in set remove WEP! (Adapter not ready). ACPI=D%d, Radio=%d\n",
+		       prAdapter->rAcpiState, prAdapter->fgIsRadioOff);
+		return WLAN_STATUS_ADAPTER_NOT_READY;
+	}
+
+	if (u4KeyId > MAX_KEY_NUM - 1) {
+		DBGLOG(REQ, ERROR, "invalid WEP key ID %u\n", u4KeyId);
+		return WLAN_STATUS_INVALID_DATA;
+	}
+
+	kalMemZero(&rRemoveKey, sizeof(struct PARAM_REMOVE_KEY));
+	rRemoveKey.u4Length = sizeof(struct PARAM_REMOVE_KEY);
+	rRemoveKey.u4KeyIndex = u4KeyId;
+	rRemoveKey.ucBssIdx = ucBssIndex;
+	/* Should set FLAG_RM_KEY_CTRL_WO_OID for not OID operation */
+	rRemoveKey.ucCtrlFlag = FLAG_RM_KEY_CTRL_WO_OID;
+
+	u4Ret = wlanoidSetRemoveKey(prAdapter, (void *)&rRemoveKey,
+			    sizeof(struct PARAM_REMOVE_KEY), &u4SetLen);
+
+	if (u4Ret != WLAN_STATUS_PENDING)
+		DBGLOG(RSN, WARN, "Can't send remove bmc wep key cmd\n");
+
+	return u4Ret;
+}
+
+
+/*----------------------------------------------------------------------------*/
+/*!
  * \brief This routine is used for remove the BC entry of the BSS
  *
  * \param[in] prAdapter Pointer to the Adapter structure
@@ -996,11 +1047,24 @@ void secRemoveBssBcEntry(IN struct ADAPTER *prAdapter,
 		}
 #endif
 		for (i = 0; i < MAX_KEY_NUM; i++) {
-			if (prBssInfo->wepkeyUsed[i])
-				secPrivacyFreeForEntry(prAdapter,
-					       prBssInfo->wepkeyWlanIdx);
+			if (prBssInfo->wepkeyUsed[i] == FALSE)
+				continue;
+			/* remove key to avoid that cfg80211_del_key is called
+			* after nicDeactivateNetwork.
+			*/
+
+			secRemoveBmcWepKey(prAdapter, prBssInfo->ucBssIndex, i);
 			prBssInfo->wepkeyUsed[i] = FALSE;
 		}
+		/* wlanoidSetRemoveKey would clear prBssInfo->wepkeyUsed[],
+		* but won't call secPrivacyFreeForEntry.
+		* For the case that the cfg80211_del_key is called before
+		* nicDeactivateNetwork, check wepkeyWlanIdx to do
+		* secPrivacyFreeForEntry.
+		*/
+		if (prBssInfo->wepkeyWlanIdx != WTBL_RESERVED_ENTRY)
+			secPrivacyFreeForEntry(prAdapter,
+				prBssInfo->wepkeyWlanIdx);
 		prBssInfo->wepkeyWlanIdx = WTBL_RESERVED_ENTRY;
 		prBssInfo->fgBcDefaultKeyExist = FALSE;
 		prBssInfo->ucBcDefaultKeyIdx = 0xff;

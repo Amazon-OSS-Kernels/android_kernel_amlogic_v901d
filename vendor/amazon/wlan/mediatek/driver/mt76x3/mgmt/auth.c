@@ -527,7 +527,11 @@ authSendAuthFrame(IN struct ADAPTER *prAdapter,
 		prFalseAuthFrame =
 		    (struct WLAN_AUTH_FRAME *)prFalseAuthSwRfb->pvHeader;
 
-		ASSERT(u2StatusCode != STATUS_CODE_SUCCESSFUL);
+		ASSERT((u2StatusCode != STATUS_CODE_SUCCESSFUL)
+#if CFG_SUPPORT_H2E
+			&& (u2StatusCode != WLAN_STATUS_SAE_HASH_TO_ELEMENT)
+#endif
+		);
 
 		pucTransmitAddr = prFalseAuthFrame->aucDestAddr;
 
@@ -839,6 +843,8 @@ authCheckRxAuthFrameStatus(IN struct ADAPTER *prAdapter,
 		DBGLOG(SAA, WARN,
 		       "Discard Auth frame with auth type = %d, current = %d\n",
 		       u2RxAuthAlgNum, prStaRec->ucAuthAlgNum);
+		/* Workaround for AP change Auth alg in response. */
+		prAuthFrame->u2AuthAlgNum = prStaRec->ucAuthAlgNum;
 		*pu2StatusCode = STATUS_CODE_AUTH_ALGORITHM_NOT_SUPPORTED;
 		return WLAN_STATUS_SUCCESS;
 	}

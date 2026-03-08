@@ -1152,7 +1152,8 @@ priv_set_int(IN struct net_device *prNetDev,
 
 		if ((rSetP2P.u4Enable)
 		    && (rWlanStatus == WLAN_STATUS_SUCCESS))
-			p2pNetRegister(prGlueInfo, TRUE);
+			if(p2pNetRegister(prGlueInfo, TRUE) == FALSE)
+				DBGLOG(INIT, ERROR, "p2pNetRegister failed\n");
 #endif
 
 	}
@@ -2362,6 +2363,8 @@ static int priv_driver_disable_test(IN struct net_device *prNetDev,
 	int32_t i4Argc = 0;
 	int8_t *apcArgv[WLAN_CFG_ARGV_MAX] = { 0 };
 	int32_t i4Ret = 0;
+	struct AIS_FSM_INFO *prAisFsmInfo = NULL;
+	struct BSS_INFO *prBssInfo = NULL;
 
 	prGlueInfo = *((struct GLUE_INFO **) netdev_priv(prNetDev));
 	if (!prGlueInfo)
@@ -2371,14 +2374,30 @@ static int priv_driver_disable_test(IN struct net_device *prNetDev,
 	if (!prAdapter)
 		return -EFAULT;
 
+	prBssInfo = prAdapter->prAisBssInfo;
+	if (!prBssInfo)
+		return -EFAULT;
+
+	prAisFsmInfo = &(prAdapter->rWifiVar.rAisFsmInfo);
+	if (!prAisFsmInfo)
+		return -EFAULT;
+
 	DBGLOG(REQ, LOUD, "command is %s\n", pcCommand);
 	wlanCfgParseArgument(pcCommand, &i4Argc, apcArgv);
 	DBGLOG(REQ, LOUD, "argc is %i\n", i4Argc);
 
-	if (kalGetMediaStateIndicated(prAdapter->prGlueInfo) !=
-									PARAM_MEDIA_STATE_DISCONNECTED)
+	LOGBUF(pcCommand, i4TotalLen, i4BytesWritten,
+		"\nCurrentState %d\n", prAisFsmInfo->eCurrentState);
+
+	if(prAisFsmInfo->eCurrentState == AIS_STATE_NORMAL_TR) {
+#if CFG_SUPPORT_CFG80211_AUTH
+		authSendDeauthFrame(prAdapter, prBssInfo,
+				prBssInfo->prStaRecOfAP, NULL, 7, NULL);
+#else
 		kalIndicateStatusAndComplete(prAdapter->prGlueInfo,
-									WLAN_STATUS_MEDIA_DISCONNECT, NULL, 0, 0xFF);
+				WLAN_STATUS_MEDIA_DISCONNECT, NULL, 0);
+#endif
+	}
 
 	if (i4Argc != 2) {
 		LOGBUF(pcCommand, i4TotalLen, i4BytesWritten,
@@ -2508,6 +2527,10 @@ priv_set_driver(IN struct net_device *prNetDev,
 			       __func__, i4BytesWritten);
 			return -EFAULT;
 		}
+
+		if (prIwReqData->data.length >= IW_PRIV_BUF_SIZE)
+			return -EFAULT;
+
 		if (copy_from_user(pcExtra, prIwReqData->data.pointer,
 				   prIwReqData->data.length)) {
 			DBGLOG(REQ, INFO,
@@ -2535,8 +2558,9 @@ priv_set_driver(IN struct net_device *prNetDev,
 
 	if (i4BytesWritten > 0) {
 
-		if (i4BytesWritten > 2000)
-			i4BytesWritten = 2000;
+		if (i4BytesWritten > IW_PRIV_BUF_SIZE)
+			i4BytesWritten = IW_PRIV_BUF_SIZE;
+
 		prIwReqData->data.length =
 			i4BytesWritten;	/* the iwpriv will use the length */
 
@@ -2983,6 +3007,7 @@ reqExtSetAcpiDevicePowerState(IN struct GLUE_INFO
 #define CMD_SET_WOW_PAR		"SET_WOW_PAR"
 #define CMD_SET_WOW_UDP		"SET_WOW_UDP"
 #define CMD_SET_WOW_TCP		"SET_WOW_TCP"
+#define CMD_SET_WOW_MDNS_IPV6   "SET_WOW_MDNS_IPV6"
 #define CMD_GET_WOW_PORT	"GET_WOW_PORT"
 #define CMD_GET_WOW_REASON	"GET_WOW_REASON"
 #define CMD_SET_SUSP_CMD	"sET_SUSP_CMD"
@@ -10079,7 +10104,8 @@ int priv_driver_set_ap_start(IN struct net_device *prNetDev, IN char *pcCommand,
 		} else
 			rSetP2P.u4Enable = 1;
 
-		set_p2p_mode_handler(prNetDev, rSetP2P);
+		if(set_p2p_mode_handler(prNetDev, rSetP2P) != 0)
+			DBGLOG(REQ, ERROR, "set_p2p_mode_handler failed\n");
 	}
 
 	return 0;
@@ -12131,6 +12157,39 @@ static int priv_driver_set_wow_tcpport(IN struct net_device *prNetDev,
 	} else
 		return -1;
 
+}
+
+static int priv_driver_set_wow_mdns_ipv6(IN struct net_device *prNetDev,
+				         IN char *pcCommand, IN int i4TotalLen)
+{
+	struct GLUE_INFO *prGlueInfo = NULL;
+	int32_t i4Argc = 0;
+	int8_t *apcArgv[WLAN_CFG_ARGV_MAX] = { 0 };
+	int32_t ucCount;
+
+	prGlueInfo = *((struct GLUE_INFO **) netdev_priv(prNetDev));
+
+	DBGLOG(REQ, LOUD, "command is %s\n", pcCommand);
+	wlanCfgParseArgument(pcCommand, &i4Argc, apcArgv);
+
+	/* example: set_wow_mdns_ipv6 _matterc */
+	if (i4Argc != 2) {
+		DBGLOG(REQ, ERROR, "wrong parameters\n");
+		return -1;
+	}
+
+	ucCount = kalStrnLen(apcArgv[1], MDNS_NAME_MAX_LEN);
+	if (ucCount >= MDNS_NAME_MAX_LEN) {
+		DBGLOG(REQ, ERROR, "pattern too long\n");
+		return -1;
+	}
+
+	prGlueInfo->prAdapter->mdns_wow_pattern_len = ucCount;
+
+	kalStrnCpy(prGlueInfo->prAdapter->mdns_wow_pattern,
+		   apcArgv[1], ucCount);
+
+	return 0;
 }
 
 static int priv_driver_get_wow_port(IN struct net_device *prNetDev,
@@ -17010,6 +17069,10 @@ int32_t priv_driver_cmds(IN struct net_device *prNetDev, IN int8_t *pcCommand,
 		else if (strnicmp(pcCommand, CMD_GET_WOW_PORT,
 			 strlen(CMD_GET_WOW_PORT)) == 0)
 			i4BytesWritten = priv_driver_get_wow_port(prNetDev,
+							pcCommand, i4TotalLen);
+		else if (strnicmp(pcCommand, CMD_SET_WOW_MDNS_IPV6,
+			 strlen(CMD_SET_WOW_MDNS_IPV6)) == 0)
+			i4BytesWritten = priv_driver_set_wow_mdns_ipv6(prNetDev,
 							pcCommand, i4TotalLen);
 		else if (strnicmp(pcCommand, CMD_GET_WOW_REASON,
 			 strlen(CMD_GET_WOW_PORT)) == 0)

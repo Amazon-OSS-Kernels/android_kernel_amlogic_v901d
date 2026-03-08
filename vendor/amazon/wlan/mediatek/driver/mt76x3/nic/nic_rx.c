@@ -784,6 +784,7 @@ struct SW_RFB *nicRxDefragMPDU(IN struct ADAPTER *prAdapter,
 	if (prSWRfb->ucSecMode == CIPHER_SUITE_TKIP
 		|| prSWRfb->ucSecMode == CIPHER_SUITE_TKIP_WO_MIC
 		|| prSWRfb->ucSecMode == CIPHER_SUITE_CCMP
+		|| prSWRfb->ucSecMode == CIPHER_SUITE_CCMP_W_CCX
 		|| prSWRfb->ucSecMode == CIPHER_SUITE_CCMP_256
 		|| prSWRfb->ucSecMode == CIPHER_SUITE_GCMP_128
 		|| prSWRfb->ucSecMode == CIPHER_SUITE_GCMP_256) {
@@ -1066,7 +1067,8 @@ u_int8_t nicRxIsDuplicateFrame(IN OUT struct SW_RFB
 	if (RXM_IS_QOS_DATA_FRAME(
 		    u2FrameCtrl)) {
 		/* WLAN header shall exist when doing duplicate detection */
-		if (prSwRfb->prStaRec->
+		if (prSwRfb->ucTid < CFG_RX_MAX_BA_TID_NUM &&
+		    prSwRfb->prStaRec->
 			aprRxReorderParamRefTbl[prSwRfb->ucTid]) {
 
 			/* QoS data with an RX BA agreement
