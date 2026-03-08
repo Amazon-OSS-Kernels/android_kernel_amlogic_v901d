@@ -108,7 +108,7 @@ static ssize_t reg_store(struct device *dev,
 			/* addr = simple_strtol(argv[1], NULL, 16); */
 			if (kstrtol(argv[1], 16, &val) < 0)
 				break;
-			addr = val;
+			addr = (unsigned int)val;
 			value = bt656_rd(devp->index, addr);
 			pr_info("reg[%d:0x%2x]=0x%08x\n",
 					devp->index, addr, value);
@@ -122,11 +122,11 @@ static ssize_t reg_store(struct device *dev,
 			/* value = simple_strtol(argv[1], NULL, 16); */
 			if (kstrtol(argv[1], 16, &val) < 0)
 				break;
-			value = val;
+			value = (unsigned int)val;
 			/* addr = simple_strtol(argv[2], NULL, 16); */
 			if (kstrtol(argv[2], 16, &val) < 0)
 				break;
-			addr = val;
+			addr = (unsigned int)val;
 			bt656_wr(devp->index, addr, value);
 			pr_info("Write reg[%d:0x%2x]=0x%08x\n",
 				devp->index, addr,

@@ -169,8 +169,7 @@ static ssize_t fts_debug_write(
         break;
 
     case PROC_HW_RESET:
-        snprintf(tmp, PROC_BUF_SIZE, "%s", writebuf + 1);
-        tmp[buflen - 1] = '\0';
+	snprintf(tmp, PROC_BUF_SIZE, "%s", writebuf + 1);
         if (strncmp(tmp, "focal_driver", 12) == 0) {
             FTS_INFO("APK execute HW Reset");
 		fts_reset_proc(0);
@@ -377,8 +376,7 @@ static int fts_debug_write(
         break;
 
     case PROC_HW_RESET:
-        snprintf(tmp, PROC_BUF_SIZE, "%s", writebuf + 1);
-        tmp[buflen - 1] = '\0';
+	snprintf(tmp, PROC_BUF_SIZE, "%s", writebuf + 1);
         if (strncmp(tmp, "focal_driver", 12) == 0) {
             FTS_INFO("APK execute HW Reset");
 		fts_reset_proc(0);

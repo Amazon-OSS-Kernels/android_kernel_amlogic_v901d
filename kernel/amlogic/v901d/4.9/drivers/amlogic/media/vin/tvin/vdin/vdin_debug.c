@@ -518,7 +518,7 @@ static void vdin_dump_one_afbce_mem(char *path, struct vdin_dev_s *devp,
 	set_fs(KERNEL_DS);
 	/*write header bin*/
 
-	if (strlen(path) < K_PATH_BUFF_LENGTH) {
+	if (strlen(path) + strlen("_1header.bin") < K_PATH_BUFF_LENGTH) {
 		strcpy(buff, path);
 	} else {
 		pr_info("err path len\n");
@@ -544,7 +544,12 @@ static void vdin_dump_one_afbce_mem(char *path, struct vdin_dev_s *devp,
 
 	/*write table bin*/
 	pos = 0;
-	strcpy(buff, path);
+	if (strlen(path) + strlen("_1header.bin") < K_PATH_BUFF_LENGTH) {
+		strcpy(buff, path);
+	} else {
+		pr_info("err path len\n");
+		return;
+	}
 	strcat(buff, "_1table.bin");
 	filp = filp_open(buff, O_RDWR|O_CREAT, 0666);
 	if (IS_ERR_OR_NULL(filp)) {

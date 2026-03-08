@@ -627,15 +627,21 @@ EXPORT_SYMBOL(key_reject_and_link);
  * schedule the cleanup task to come and pull it out of the tree in process
  * context at some later time.
  */
-#include <linux/memory.h>
 
+#ifdef CONFIG_AMLOGIC_MODIFY
+#include <linux/mm.h>
 int is_key_invalid(struct key *key)
 {
+#ifdef CONFIG_ARM64
+	if (key && key < (struct key *)VA_START)
+#else
 	if (key && key < (struct key *)PAGE_OFFSET)
+#endif
 		return 1;
 	return 0;
 }
 EXPORT_SYMBOL(is_key_invalid);
+#endif
 
 void key_put(struct key *key)
 {

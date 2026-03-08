@@ -247,10 +247,16 @@ extern void key_put(struct key *key);
 
 static inline struct key *__key_get(struct key *key)
 {
+#ifdef CONFIG_AMLOGIC_MODIFY
+#ifdef CONFIG_ARM64
+	if (key < (struct key *)VA_START) {
+#else
 	if (key < (struct key *)PAGE_OFFSET) {
+#endif
 		WARN(1, "INVALID__x2__KEY:%p\n", key);
 		return NULL;
 	}
+#endif
 	atomic_inc(&key->usage);
 	return key;
 }

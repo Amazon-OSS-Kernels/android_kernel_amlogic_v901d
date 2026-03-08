@@ -701,6 +701,9 @@ static ssize_t amvecm_3d_sync_store(struct class *cla,
 	}
 
 	buf_orig = kstrdup(buf, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	parse_param_amvecm(buf_orig, (char **)&parm);
 	if (!strncmp(parm[0], "hstart", 6)) {
 		if (kstrtol(parm[1], 10, &val) < 0)
@@ -1289,6 +1292,9 @@ static int parse_para_pq(const char *para, int para_num, int *result)
 		return 0;
 
 	params = kstrdup(para, GFP_KERNEL);
+	if (!params)
+		return -ENOMEM;
+
 	params_base = params;
 	token = params;
 	len = strlen(token);
@@ -2125,6 +2131,9 @@ static ssize_t amvecm_dnlp_debug_store(struct class *cla,
 	memset(stemp, 0, 400);
 
 	buf_orig = kstrdup(buf, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	parse_param_amvecm(buf_orig, (char **)&parm);
 
 	if (!dnlp_insmod_ok) {
@@ -2975,6 +2984,9 @@ static ssize_t amvecm_cm2_store(struct class *cls,
 	char delim2[2] = "\n";
 
 	buf_orig = kstrdup(buffer, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	ps = buf_orig;
 	strcat(delim1, delim2);
 	while (1) {
@@ -3091,6 +3103,9 @@ static ssize_t amvecm_cm_reg_store(struct class *cls,
 	if (!buffer)
 		return count;
 	buf_orig = kstrdup(buffer, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	parse_param_amvecm(buf_orig, (char **)&parm);
 
 	if (kstrtoul(parm[0], 16, &val) < 0) {
@@ -3149,6 +3164,9 @@ static ssize_t amvecm_write_reg_store(struct class *cls,
 	if (!buffer)
 		return count;
 	buf_orig = kstrdup(buffer, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	parse_param_amvecm(buf_orig, (char **)&parm);
 
 	if (!strncmp(parm[0], "r", 1)) {
@@ -3242,6 +3260,9 @@ static ssize_t amvecm_gamma_store(struct class *cls,
 	gammaB = kmalloc(256 * sizeof(unsigned short), GFP_KERNEL);
 
 	buf_orig = kstrdup(buffer, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	ps = buf_orig;
 	strcat(delim1, delim2);
 	while (1) {
@@ -3394,6 +3415,9 @@ static ssize_t set_gamma_pattern_store(struct class *cls,
 	char delim2[2] = "\n";
 
 	buf_orig = kstrdup(buffer, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	ps = buf_orig;
 	strcat(deliml, delim2);
 	*(parm + 3) = NULL;
@@ -3541,6 +3565,9 @@ static ssize_t amvecm_wb_store(struct class *cls,
 	if (!buffer)
 		return count;
 	buf_orig = kstrdup(buffer, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	parse_param_amvecm(buf_orig, (char **)&parm);
 
 	if (!strncmp(parm[0], "r", 1)) {
@@ -3673,6 +3700,9 @@ static ssize_t set_hdr_289lut_store(struct class *cls,
 	Hdr289lut = kmalloc(289 * sizeof(unsigned short), GFP_KERNEL);
 
 	buf_orig = kstrdup(buffer, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	ps = buf_orig;
 	strcat(deliml, delim2);
 	while (1) {
@@ -3780,7 +3810,11 @@ static ssize_t amvecm_post_matrix_pos_store(struct class *cla,
 
 	if (!buf)
 		return count;
+
 	buf_orig = kstrdup(buf, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	parse_param_amvecm(buf_orig, (char **)&parm);
 
 	if (kstrtoint(parm[0], 10, &val_x) < 0) {
@@ -4061,6 +4095,9 @@ static ssize_t amvecm_hdr_dbg_store(struct class *cla,
 	memset(stemp, 0, 400);
 
 	buf_orig = kstrdup(buf, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	parse_param_amvecm(buf_orig, (char **)&parm);
 
 	if (!strncmp(parm[0], "hdr_dbg", 7)) {
@@ -4554,6 +4591,9 @@ static ssize_t amvecm_pq_user_store(struct class *cla,
 	if (!buf)
 		return count;
 	buf_orig = kstrdup(buf, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	parse_param_amvecm(buf_orig, (char **)&parm);
 
 	if (!strncmp(parm[0], "blk_ext_en", 10))
@@ -5590,6 +5630,7 @@ static ssize_t amvecm_cm2_hue_by_hs_store(struct class *cla,
 	buf_orig = kstrdup(buf, GFP_KERNEL);
 	if (!buf_orig)
 		return -ENOMEM;
+
 	parse_param_amvecm(buf_orig, (char **)&parm);
 	if (!strncmp(parm[0], "cm2_hue_by_hs", 7)) {
 		if (kstrtoul(parm[1], 10, &val) < 0)
@@ -5828,6 +5869,9 @@ static ssize_t amvecm_debug_store(struct class *cla,
 	if (!buf)
 		return count;
 	buf_orig = kstrdup(buf, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	parse_param_amvecm(buf_orig, (char **)&parm);
 	if (!strncmp(parm[0], "vpp_size", 8))
 		dump_vpp_size_info();
@@ -6357,6 +6401,9 @@ static ssize_t amvecm_reg_store(struct class *cla,
 	if (!buf)
 		return count;
 	buf_orig = kstrdup(buf, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	parse_param_amvecm(buf_orig, (char **)&parm);
 	if (!strcmp(parm[0], "rv")) {
 		if (kstrtoul(parm[1], 16, &val) < 0) {
@@ -6918,6 +6965,9 @@ static ssize_t amvecm_lc_store(struct class *cls,
 		return 0;
 
 	buf_orig = kstrdup(buf, GFP_KERNEL);
+	if (!buf_orig)
+		return -ENOMEM;
+
 	parse_param_amvecm(buf_orig, (char **)&parm);
 
 	if (!strcmp(parm[0], "lc")) {
