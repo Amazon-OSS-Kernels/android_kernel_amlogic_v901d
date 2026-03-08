@@ -1,0 +1,9 @@
+#
+# USB Power control Configuration
+#
+
+config AMLOGIC_USB_POWER
+	bool "Drivers for amlogic USB power control"
+	default y
+	help
+		if enable AMLOGIC_USB_POWER config, Control usb 5v pin

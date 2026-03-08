@@ -1,0 +1,628 @@
+# This is the world regulatory domain
+country 00:
+	# Channel 1 - 11 Active
+	(2402 - 2472 @ 40), (20)
+	# Channel 12 - 13 Passive
+	(2457 - 2482 @ 20), (20), NO-IR, DFS, AUTO-BW
+	# Channel 14. Only JP enables this and for 802.11b only
+	# (2474 - 2494 @ 20), (20), NO-IR, NO-OFDM
+	# Channel 36 - 48
+	(5170 - 5250 @ 80), (20), AUTO-BW
+	# Channel 52 - 64
+	(5250 - 5330 @ 80), (20), NO-IR, DFS, AUTO-BW
+	# Channel 100 - 144
+	(5490 - 5730 @ 160), (20), NO-IR, DFS
+	# Channel 149 - 165
+	(5735 - 5835 @ 80), (20), NO-IR, DFS
+	# IEEE 802.11ad (60GHz), channels 1..3
+	# (57240 - 63720 @ 2160), (0)
+
+country US: DFS-FCC
+	(2402 - 2472 @ 40), (30)
+	# 5.15 ~ 5.25 GHz: 30 dBm for master mode, 23 dBm for clients
+	(5170 - 5250 @ 80), (23), AUTO-BW
+	(5250 - 5330 @ 80), (23), DFS, AUTO-BW
+	(5490 - 5730 @ 160), (23), DFS
+	(5735 - 5835 @ 80), (30)
+	# 60g band
+	# reference: http://cfr.regstoday.com/47cfr15.aspx#47_CFR_15p255
+	# channels 1,2,3, EIRP=40dBm(43dBm peak)
+	# (57240 - 63720 @ 2160), (40)
+
+country CA: DFS-FCC
+	(2402 - 2472 @ 40), (30)
+	(5170 - 5250 @ 80), (23), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (24), DFS, AUTO-BW
+	# Channel 100 - 116
+	(5490 - 5590 @ 80), (24), DFS
+	# Channel 132 - 144
+	(5650 - 5730 @ 80), (24), DFS
+	# Channel 149 - 165
+	(5735 - 5835 @ 80), (30)
+
+country MX: DFS-FCC
+	(2402 - 2472 @ 40), (20)
+	(5170 - 5250 @ 80), (17), AUTO-BW
+	(5250 - 5330 @ 80), (24), DFS, AUTO-BW
+	(5490 - 5590 @ 80), (24), DFS
+	(5650 - 5730 @ 80), (24), DFS
+	(5735 - 5835 @ 80), (30)
+
+#--------------------UAE-----------------------------
+country AE: DFS-ETSI
+	(2402 - 2482 @ 40), (20)
+	(5170 - 5250 @ 80), (24), AUTO-BW, NO-OUTDOOR
+	(5250 - 5330 @ 80), (24), DFS, AUTO-BW, NO-OUTDOOR
+	(5490 - 5590 @ 80), (24), DFS
+	(5650 - 5710 @ 40), (24), DFS
+	(5735 - 5835 @ 80), (30)
+
+#--------------------Europe-----------------------------
+country DE: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+# UK: United Kingdom
+country GB: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country FR: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country IT: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country ES: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country PL: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country RO: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country NL: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country BE: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country CZ: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country GR: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country PT: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country SE: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country HU: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country BY: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country AT: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country RS: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country CH: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country BG: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country DK: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country FI: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country SK: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country NO: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country IE: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country HR: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country BA: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country AL: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country LT: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country SI: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country LV: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country EE: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country LU: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country MT: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country IS: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country AD: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country MC: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country LI: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country SM: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country VA: DFS-ETSI
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+# LagunaF Tier2 / 3 Expansion BRD
+country SA: DFS-ETSI
+	# [2412 (Channel 1) - 2472 (Channel 13)], 100 mW (20 dBm) EIRP for indoor and outdoor
+	(2402 - 2482 @ 40), (20)
+	# [5180 (Channel 36) - 5240 (Channel 48)] 200mW for indoor
+	(5170 - 5250 @ 80), (200 mW), NO-OUTDOOR
+	# [5260 (Channel 52) - 5320 (Channel 64)] 200mW for indoor
+	(5250 - 5330 @ 80), (200 mW), NO-OUTDOOR, DFS, PASSIVE-SCAN
+	# [5500 (Channel 100) - 5700 (Channel 140)], 1W = 30dBm for indoor and outdoor
+	(5490 - 5710 @ 160), 30), DFS
+	# 5720 (Channel 144) - 5720 (Channel 144)], 1W = 30dBm for indoor and outdoor
+	(5710 - 5730 @ 20), (30), DFS, PASSIVE-SCAN
+	# [5745 (Channel 149) - 5805 (Channel 161)], 1W = 30dBm, 1W for indoor and outdoor
+	(5735 - 5815 @ 80), (30)
+
+country KW: DFS-ETSI
+	# [2412 (Channel 1) - 2472 (Channel 13)] 100 mW (20 dBm), 100mW for indoor and outdoor
+	(2402 - 2482 @ 40), (20)
+	# [5180 (Channel 36) - 5240 (Channel 48)] 200mW for indoor and outdoor
+	(5170 - 5250 @ 80), (200 mW)
+	# [5260 (Channel 52) - 5320 (Channel 64)] 100mW
+	# without TPC, 200mW with TPC, for indoor and outdoor
+	(5250 - 5330 @ 80), (200 mW), DFS, PASSIVE-SCAN
+	# [5500 (Channel 100) - 5700 (Channel 140)] 500mW for indoor and outdoor
+	(5490 - 5710 @ 160), (500 mW), DFS, PASSIVE-SCAN
+	# 5720 (Channel 144) - 5720 (Channel 144)] with MAX of 20MHZ 500mW for indoor and outdoor
+	(5710 - 5730 @ 20), (500 mW), DFS, PASSIVE-SCAN
+	# [5745 (Channel 149) - 5805 (Channel 161)] 50mW for indoor and outdoor
+	(5735 - 5815 @ 80), (50 mW)
+	# 5825 (Channel 165) - 5825 (Channel 165)] with MAX of 20MHZ 50mW for indoor and outdoor
+	(5815 - 5835 @ 20), (50 mW)
+
+country BH: DFS-JP
+	# [2412 (Channel 1) - 2472 (Channel 13)] 100 mW (20 dBm), 100mW for indoor and outdoor
+	(2402 - 2482 @ 40), (20)
+	# [5180 (Channel 36) - 5240 (Channel 48)] 200mW for indoor and outdoor
+	(5170 - 5250 @ 80), (200 mW)
+	# [5260 (Channel 52) - 5320 (Channel 64)] 200mW for indoor and outdoor
+	(5250 - 5330 @ 80), (200 mW), DFS, PASSIVE-SCAN
+	# [5745 (Channel 149) - 5805 (Channel 161)] 2000mW for indoor,
+	# 2W (2000mW) for outdoor Thus, same for indoor and outdoor
+	(5735 - 5815 @ 80), (2000 mW)
+	# 5825 (Channel 165) - 5825 (Channel 165)], 2000mW for indoor,
+	# 2W (2000mW) for outdoor Thus, same for indoor and outdoor
+	(5815 - 5835 @ 20), (2000 mW)
+
+country QA: DFS-JP
+	# [2412 (Channel 1) - 2472 (Channel 13)] 100 mW (20 dBm) EIRP for indoor
+	(2402 - 2482 @ 40), (20), NO-OUTDOOR
+	# [5180 (Channel 36) - 5240 (Channel 48)] 200mW EIRP for indoor
+	(5170 - 5250 @ 80), (200 mW), NO-OUTDOOR
+	# [5260 (Channel 52) - 5320 (Channel 64)] 200mW EIRP for indoor
+	(5250 - 5330 @ 80), (200 mW), NO-OUTDOOR, DFS, PASSIVE-SCAN
+	# [5500 (Channel 100) - 5700 (Channel 140)] 100mW EIRP for indoor
+	(5490 - 5710 @ 160), (20), NO-OUTDOOR, DFS, PASSIVE-SCAN
+	# [5720 (Channel 144) - 5720 (Channel 144)] 100 mW (20 dBm), EIRP for indoor
+	(5710 - 5730 @ 20), (20), NO-OUTDOOR, DFS, PASSIVE-SCAN
+	# [5745 (Channel 149) - 5805 (Channel 161)] 100 mW (20 dBm) EIRP for indoor
+	(5735 - 5815 @ 80), (20), NO-OUTDOOR
+	# 5825 (Channel 165) - 5825 (Channel 165)] 100 mW (20 dBm) EIRP for indoor
+	(5815 - 5835 @ 20), (20), NO-OUTDOOR
+
+country OM: DFS-ETSI
+	# [2412 (Channel 1) - 2472 (Channel 13)] 100 mW (20 dBm)
+	# for indoor or or in same campus but not allowed to connect across campus
+	(2402 - 2482 @ 40), (20), NO-OUTDOOR
+	# [5180 (Channel 36) - 5240 (Channel 48)]
+	# 200 mW, for indoor or in same campus but not allowed to connect across campus
+	(5170 - 5250 @ 80), (200 mW), NO-OUTDOOR
+	# [5260 (Channel 52) - 5320 (Channel 64)] 200 mW
+	# for indoor or in same campus but not allowed to connect across campus
+	(5250 - 5330 @ 80), (200 mW), DFS, PASSIVE-SCAN, NO-OUTDOOR
+	# [5500 (Channel 100) - 5700 (Channel 140)] 1000mW for indoor and outdoor
+	# Outdoor Use with conditions: If it is outdoor, it can be used for PtP/PtMP Links
+	# connecting two different site/ sites or campus with special authorization from TRA OMAN
+	(5490 - 5710 @ 160), (30), DFS
+	# [5745 (Channel 149) - 5805 (Channel 161)] 2000 mW, only for FWA systems and out door use
+	(5735 - 5815 @ 80), (2000 mW), NO-INDOOR
+
+country JO: DFS-JP
+	# [2412 (Channel 1) - 2472 (Channel 13)] 100 mW (20 dBm)
+	(2402 - 2482 @ 40), (20)
+	# [5180 (Channel 36) - 5240 (Channel 48)] 200 mW
+	(5170 - 5250 @ 80), (200 mW)
+	# [5745 (Channel 149) - 5805 (Channel 161)] 200 mW
+	(5735 - 5815 @ 80), (200 mW)
+	# 5825 (Channel 165) - 5825 (Channel 165)] with MAX of 20MHZ 200 mW
+	(5815 - 5835 @ 20), (200 mW)
+
+country LB: DFS-FCC
+	# [2412 (Channel 1) - 2472 (Channel 13)] 100 mW (20 dBm)
+	(2402 - 2482 @ 40), (20)
+	# [5180 (Channel 36) - 5240 (Channel 48)] 200 mW
+	(5170 - 5250 @ 80), (200 mW)
+	# [5260 (Channel 52) - 5320 (Channel 64)] 200 mW
+	(5250 - 5330 @ 80), (200 mW), DFS, PASSIVE-SCAN
+	# [5500 (Channel 100) - 5700 (Channel 140)] 1000 mW = 30 dBm
+	(5490 - 5710 @ 160), (30), DFS, PASSIVE-SCAN
+	# 5720 (Channel 144) - 5720 (Channel 144)] 1000mW for indoor and outdoor (30 dBm)
+	(5710 - 5730 @ 20), (30), DFS, PASSIVE-SCAN
+	# [5745 (Channel 149) - 5805 (Channel 161)] 100 mW (20 dBm)
+	(5735 - 5815 @ 80), (20)
+	# 5825 (Channel 165) - 5825 (Channel 165)] with MAX of 20MHZ 100 mW (20 dBm)
+	(5815 - 5835 @ 20), (20)
+
+country YE:
+	# Follow European standard CE marking
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country KR: DFS-JP
+	# 1. South Korea is allowed to be used channel 1~13, not 1~11 (Estech, 01052015)
+	# 0.5~20MHz: 10mW/MHz, 20~40MHz: 5mW/MHz, 40~80MHz: 2.5mW/MHz, 10 dBm (Onetech, 06152016)
+	# 10 mW/MHz 以下 (OBW: 0.5 ~ 26 MHz), 5 mW/MHz 以下 (OBW: 26 ~ 40 MHz),
+	# 2.5 mW/MHz 以下 (OBW: 40 ~ 80 MHz),  (Onetech, 10042018)
+	# ------------------------------------------------------------------
+	# 20MHz (7ch) : 5180MHz(36), 5200MHz(40), 5220MHz(44)
+	# 5260MHz(52), 5280MHz(56), 5300MHz(60), 5320MHz(64) ---10mW/MHz (12mW)
+	# 20MHz (1ch) : 5240MHz(48) ---2.5mW/MHz (3mW)
+	# 20MHz (11ch) : 5500MHz(100), 5520MHz(104), 5540MHz(108), 5560MHz(112),
+	# 5580MHz(116), 5600MHz(120), 5620MHz(124), 5640MHz(128), 5660MHz(132),
+	# 5680MHz(136), 5700MHz(140) ---10mW/MHz (12mW)
+	# 20MHz (5ch) : 5745MHz(149), 5765MHz(153), 5785MHz(157),
+	# 5805MHz(161), 5825MH(165) ---10mW/MHz (12mW)
+	# ------------------------------------------------------------------
+	# 40MHz (3ch) : 5190MHz(38), 5270MHz(54), 5310MHz(62) ---5mW/MHz (6mW)
+	# 40MHz (5ch) : 5510MHz(102), 5550MHz(110), 5590MHz(118), 5630MHz(126),
+	# 5670MHz(134) ---5mW/MHz (6mW)
+	# 40MHz (2ch) : 5755MHz(151), 5795MHz(159) ---5mW/MHz (6mW)
+	# ------------------------------------------------------------------
+	# 80MHz (2ch) : 5210MHz(42), 5290MHz(58) ---2.5mW/MHz (3mW)
+	# 80MHz (2ch) : 5530MHz(106), 5610MHz(122) ---2.5mW/MHz (3mW)
+	# 80MHz (1ch) : 5775MHz(155) ---2.5mW/H34MHz (3mW)
+	# ------------------------------------------------------------------
+	# [2412 (Channel 1) - 2472 (Channel 13)] 10 mW
+	(2402 - 2482 @ 40), (200 mW)
+	# [5180 (Channel 36) - 5240 (Channel 48)] 200 mW
+	(5170 - 5250 @ 80), (200 mW)
+	# [5260 (Channel 52) - 5320 (Channel 64)] 200 mW
+	(5250 - 5330 @ 80), (200 mW), DFS, PASSIVE-SCAN
+	# [5500 (Channel 100) - 5700 (Channel 140)] 200 mW
+	(5490 - 5710 @ 160), (200 mW), DFS, PASSIVE-SCAN
+	# [5745 (Channel 149) - 5825 (Channel 165)] 200 mW
+	(5735 - 5835 @ 80), (200 mW)
+
+country AR: DFS-FCC
+	# [2412 (Channel 1) - 2472 (Channel 13)] 1000 mW (30 dBm), for indoor and outdoor
+	(2402 - 2482 @ 40), (30)
+	# [5180 (Channel 36) - 5240 (Channel 48)] 50mW for indoor and outdoor
+	(5170 - 5250 @ 80), (50 mW)
+	# [5260 (Channel 52) - 5320 (Channel 64)] 250 mW for indoor and outdoor
+	(5250 - 5330 @ 80), (250 mW), DFS, PASSIVE-SCAN
+	# [5500 (Channel 100) - 5600 (Channel 120)] 250 mW, 5.470-5.6GHz, (Ch 100-120),
+	# (Passive Scan / Active Scan) 5600-5650MHz: AFTIC (ex CNC) doesn’t allow the usage of
+	# that frequency portion on any way, so passive/listen operation is not allowed.
+	# Operation on 5600-5650MHz band must be fully hardware or software disabled. 0,25W
+	# conducted power, 5600-5650MHz band not allowed for WiFi transmission,
+	# reserved for metrological radars. indoor and outdoor
+	(5490 - 5610 @ 80), (250 mW), DFS, PASSIVE-SCAN
+	# [5660 (Channel 132) - 5700 (Channel 140)] 250mW, 5.65-5.725GHz, (Ch 132-140),
+	# (Passive Scan / Active Scan) 5600-5650MHz: AFTIC (ex CNC) doesn’t allow the usage of
+	# that frequency portion on any way, so passive/listen operation is not allowed.
+	# Operation on 5600-5650MHz band must be fully hardware or software disabled.
+	# 0,25W conducted power, 5600-5650MHz band not allowed for WiFi transmission,
+	# reserved for metrological radars indoor and outdoor
+	(5650 - 5710 @ 40), (250 mW), DFS, PASSIVE-SCAN
+	# [5745 (Channel 149) - 5805 (Channel 161)] 1000mW for indoor and outdoor (30 dBm)
+	(5735 - 5815 @ 80), (30)
+	# 5825 (Channel 165) - 5825 (Channel 165)] 1000mW for indoor and outdoor (30 dBm)
+	(5815 - 5835 @ 20), (30)
+
+country CL: DFS-JP
+	# [2412 (Channel 1) - 2472 (Channel 13)] 1W = 1000 mW = (30 dBm) for indoor and outdoor
+	(2402 - 2482 @ 40), (30)
+	# [5180 (Channel 36) - 5240 (Channel 48)] 1W = 1000 mW = (30 dBm) 1W for indoor only
+	(5170 - 5250 @ 80), (30), NO-OUTDOOR
+	# 1W = 1000 mW = (30 dBm)
+	# 5GHz B2 (5250-5350 MHz) is now open for indoor and outdoor use under 1W.
+	(5250 - 5350 @ 80), (30), DFS
+	# 1W = 1000 mW = (30 dBm) 5GHz B3 (5470-5725 MHz) is now open for indoor and
+	# outdoor use under 1W. (Ch 100 - 140) and (Ch 144) range combine 1W = 1000 mW = (30 dBm)
+	(5470 - 5725 @ 160), (30), DFS, PASSIVE-SCAN
+	# 5GHz B4 (5725-5850 MHz) is now open for indoor use under 150mW and outdoor use under 1W.
+	(5725 - 5850 @ 80), (30)
+
+country CO: DFS-FCC
+	# [2412 (Channel 1) - 2472 (Channel 13)] 1W conducted; 36dBm EIRPindoor and outdoor
+	(2402 - 2482 @ 40), (36)
+	# [5180 (Channel 36) - 5240 (Channel 48)] 250mW conducted; 30dBm EIRPindoor and outdoor
+	(5170 - 5250 @ 80), (30)
+	# [5260 (Channel 52) - 5320 (Channel 64)] 250mW conducted; 30dBm EIRPindoor and outdoor
+	(5250 - 5330 @ 80), (30), DFS, PASSIVE-SCAN
+	# [5500 (Channel 100) - 5700 (Channel 140)] 250mW conducted; 30dBm EIRPindoor and outdoor
+	(5490 - 5710 @ 160), (30), DFS, PASSIVE-SCAN
+	# 5720 (Channel 144) - 5720 (Channel 144)] 250mW conducted; 30dBm EIRPindoor and outdoor
+	(5710 - 5730 @ 20), (30), DFS, PASSIVE-SCAN
+	# [5745 (Channel 149) - 5805 (Channel 161)] 1W conducted; 36dBm EIRPindoor and outdoor
+	(5735 - 5815 @ 80), (36)
+	# 5825 (Channel 165) - 5825 (Channel 165)] 1W conducted; 36dBm EIRPindoor and outdoor
+	(5815 - 5835 @ 20), (36)
+
+# LagunaF Tier1 Expansion BRD
+country JP: DFS-JP
+	# [2412 (Channel 1) - 2472 (Channel 13)] 100 mW = (20 dBm)
+	(2402 - 2482 @ 40), (20)
+	# [5180 (Channel 36) - 5240 (Channel 48)] 100 mW = (20 dBm)
+	(5170 - 5250 @ 80), (20), AUTO-BW
+	# [5260 (Channel 52) - 5320 (Channel 64)] 100 mW = (20 dBm)
+	(5250 - 5330 @ 80), (20), DFS, AUTO-BW
+	# [5500 (Channel 100) - 5720 (Channel 144)] 200 mW = (23 dBm)
+	(5490 - 5730 @ 160), (23), DFS
+
+country AU:
+	# [2412 (Channel 1) - 2472 (Channel 13)] 4000mW for indoor and outdoor
+	(2402 - 2482 @ 40), (36)
+	# [5180 (Channel 36) - 5240 (Channel 48)] 200mW The frequency bands 5.15 to
+	# 5.25GHz and 5.25 to 5.35GHz are for indoor use only in Australia. Use in a
+	# vehicle is not considered indoor use.
+	(5170 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW
+	# [5260 (Channel 52) - 5320 (Channel 64)] 200 mW The frequency bands 5.15 to
+	# 5.25GHz and 5.25 to 5.35GHz are for indoor use only in Australia. Use in a
+	# vehicle is not considered indoor use.
+	(5250 - 5330 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, DFS, PASSIVE-SCAN
+	# [5500 (Channel 100) - 5580 (Channel 116)] 1000mW, indoor and outdoor (30 dBm)(100-116)
+	(5490 - 5590 @ 80), (30), DFS, PASSIVE-SCAN
+	# [5660 (Channel 132) - 5700 (Channel 140)] 1000 mW, indoor and outdoor (30 dBm)(132-140)
+	(5650 - 5710 @ 40), (30), DFS, PASSIVE-SCAN
+	# 5720 (Channel 144) - 5720 (Channel 144)] 1000mW for indoor and outdoor (30 dBm)
+	(5710 - 5730 @ 20), (30), DFS, PASSIVE-SCAN
+	# [5745 (Channel 149) - 5805 (Channel 161)] 4000mW for indoor and outdoor
+	(5735 - 5815 @ 80), (36)
+	# 5825 (Channel 165) - 5825 (Channel 165)] with MAX of 20MHZ 4000mW for indoor and outdoor
+	(5815 - 5835 @ 20), (36)
+
+country IN: DFS-ETSI
+	# [2412 (Channel 1) - 2472 (Channel 13)] 36 dBm
+	(2402 - 2482 @ 40), (36)
+	# [5180 (Channel 36) - 5240 (Channel 48)] (Antenna gain ≤ 6dBi) Maximum conducted power
+	# limit: 30dbm Total E.I.R.P limit: 36dBm (Antenna gain > 6dBi)
+	# Maximum conducted power should reduce to the same amount the antenna
+	# gain is exceeding from 6 dbi, so that the E.I.R.P does not exceed the limit (36 dBM)
+	(5170 - 5250 @ 80), (36)
+	# [5260 (Channel 52) - 5320 (Channel 64)] (Antenna gain ≤ 6dBi) Maximum conducted power
+	# limit: 24dbm Total E.I.R.P limit: 30dBm (Antenna gain > 6dBi)
+	# Maximum conducted power should reduce to the same amount the antenna
+	# gain is exceeding from 6 dbi, so that the E.I.R.P does not exceed the limit (30 dBm)
+	(5250 - 5330 @ 80), (30), DFS, PASSIVE-SCAN
+	# [5500 (Channel 100) - 5700 (Channel 140)] (Antenna gain ≤ 6dBi) Maximum conducted power
+	# limit: 24dbm Total E.I.R.P limit: 30dBm (Antenna gain > 6dBi)
+	# Maximum conducted power should reduce to the same amount the antenna
+	# gain is exceeding from 6 dbi, so that the E.I.R.P does not exceed the limit (30 dBm)
+	(5490 - 5710 @ 160), (30), DFS, PASSIVE-SCAN
+	# 5720 (Channel 144) - 5720 (Channel 144)] (Antenna gain ≤ 6dBi) Maximum conducted power
+	# limit: 24dbm Total E.I.R.P limit: 30dBm (Antenna gain > 6dBi)
+	# Maximum conducted power should reduce to the same amount the antenna
+	# gain is exceeding from 6 dbi, so that the E.I.R.P does not exceed the limit (30 dBm)
+	(5710 - 5730 @ 20), (30), DFS, PASSIVE-SCAN
+	# [5745 (Channel 149) - 5805 (Channel 161)] (Antenna gain ≤ 6dBi) Maximum conducted power
+	# limit: 30dbm Total E.I.R.P limit: 36dBm (Antenna gain > 6dBi)
+	# Maximum conducted power should reduce to the same amount the antenna
+	# gain is exceeding from 6 dbi, so that the E.I.R.P does not exceed the limit (36 dBM)
+	(5735 - 5815 @ 80), (36)
+	# 5825 (Channel 165) - 5825 (Channel 165)] (Antenna gain ≤ 6dBi) Maximum conducted power
+	# limit: 30dbm Total E.I.R.P limit: 36dBm (Antenna gain > 6dBi)
+	# Maximum conducted power should reduce to the same amount the antenna
+	# gain is exceeding from 6 dbi, so that the E.I.R.P does not exceed the limit (36 dBM)
+	(5815 - 5835 @ 20), (36)
+
+country BR: DFS-FCC
+	# [2412 (Channel 1) - 2472 (Channel 13)]
+	# 1 W, Peak or RMS (conducted)
+	# Note: exclusively in point-to-point of fixed service applications may use transmit
+	# antennas with directional gain greater than 6 dBi, provided that the maximum peak power at
+	# the transmitter output is reduced by 1 dB for every 3 dB the antenna
+	# directional gain exceeds 6 dBi.
+	(2402 - 2482 @ 40), (30)
+	# [5180 (Channel 36) - 5240 (Channel 48)] Indoor only: 200 mW, RMS (EIRP)
+	# OUTDOOR is not allowed for this band
+	(5170 - 5250 @ 80), (200 mW), NO-OUTDOOR
+	# [5260 (Channel 52) - 5320 (Channel 64)]
+	# Indoor only: 200 mW, RMS (EIRP) OUTDOOR is not allowed for this band
+	(5250 - 5330 @ 80), (200 mW), NO-OUTDOOR, DFS, PASSIVE-SCAN
+	# [5500 (Channel 100) - 5700 (Channel 140)] 250 mW Peak or Peak
+	# corrected by Duty circle (conducted) and 1W, RMS (EIRP) Indoor & Outdoor
+	(5490 - 5710 @ 160), (30), DFS, PASSIVE-SCAN
+	# [5745 (Channel 149) - 5805 (Channel 161)]
+	# 1W measure peak power or RMS (conducted) Indoor & Outdoor
+	(5735 - 5815 @ 80), (30)
+	# 5825 (Channel 165) - 5825 (Channel 165)]
+	# 1W measure peak power or RMS (conducted) Indoor & Outdoor
+	(5815 - 5835 @ 20), (30)
