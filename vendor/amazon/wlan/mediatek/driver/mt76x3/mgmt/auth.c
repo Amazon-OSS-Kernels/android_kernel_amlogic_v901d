@@ -1130,6 +1130,7 @@ authSendDeauthFrame(IN struct ADAPTER *prAdapter,
 	uint8_t ucRoleIdx = 0;
 #if CFG_WDEV_LOCK_THREAD_SUPPORT
 	uint8_t* pFrameBuf;
+	uint8_t fgIsInterruptContext = FALSE;
 #endif
 #endif
 
@@ -1355,7 +1356,19 @@ authSendDeauthFrame(IN struct ADAPTER *prAdapter,
 	if ((prStaRec) && (IS_STA_IN_AIS(prStaRec))) {
 
 #if CFG_WDEV_LOCK_THREAD_SUPPORT
-		pFrameBuf = kalMemAlloc(prMsduInfo->u2FrameLength, VIR_MEM_TYPE);
+		if (in_interrupt()) {
+			pFrameBuf = kalMemAlloc(prMsduInfo->u2FrameLength, PHY_MEM_TYPE);
+			fgIsInterruptContext = TRUE;
+		} else {
+			pFrameBuf = kalMemAlloc(prMsduInfo->u2FrameLength, VIR_MEM_TYPE);
+			fgIsInterruptContext = FALSE;
+		}
+
+		if (!pFrameBuf) {
+			DBGLOG(SAA, ERROR, "Alloc buffer for frame failed\n");
+			cnmMgtPktFree(prAdapter, prMsduInfo);
+			return WLAN_STATUS_RESOURCES;
+		}
 
 		kalMemCopy((void *) pFrameBuf,
 					(void *) prDeauthFrame,
@@ -1367,7 +1380,8 @@ authSendDeauthFrame(IN struct ADAPTER *prAdapter,
 							pFrameBuf,
 							prMsduInfo->u2FrameLength,
 							NULL,
-							0);
+							0,
+							fgIsInterruptContext);
 #else
 		cfg80211_tx_mlme_mgmt(prAdapter->prGlueInfo->prDevHandler,
 				(uint8_t *)prDeauthFrame,
@@ -1378,7 +1392,20 @@ authSendDeauthFrame(IN struct ADAPTER *prAdapter,
 	else if (prAdapter->fgIsP2PRegistered) {
 			ucRoleIdx = (uint8_t)prBssInfo->u4PrivateData;
 #if CFG_WDEV_LOCK_THREAD_SUPPORT
-			pFrameBuf = kalMemAlloc(prMsduInfo->u2FrameLength, VIR_MEM_TYPE);
+			if (in_interrupt()) {
+				pFrameBuf = kalMemAlloc(prMsduInfo->u2FrameLength, PHY_MEM_TYPE);
+				fgIsInterruptContext = TRUE;
+			} else {
+				pFrameBuf = kalMemAlloc(prMsduInfo->u2FrameLength, VIR_MEM_TYPE);
+				fgIsInterruptContext = FALSE;
+			}
+
+			if (!pFrameBuf) {
+				DBGLOG(SAA, ERROR, "Alloc buffer for frame failed\n");
+				cnmMgtPktFree(prAdapter, prMsduInfo);
+				return WLAN_STATUS_RESOURCES;
+			}
+
 			kalMemCopy((void *) pFrameBuf,
 						(void *) prDeauthFrame,
 						prMsduInfo->u2FrameLength);
@@ -1389,7 +1416,8 @@ authSendDeauthFrame(IN struct ADAPTER *prAdapter,
 								pFrameBuf,
 								prMsduInfo->u2FrameLength,
 								NULL,
-								0);
+								0,
+								fgIsInterruptContext);
 #else
 			cfg80211_tx_mlme_mgmt(
 				prAdapter->prGlueInfo->prP2PInfo[ucRoleIdx]
@@ -1505,6 +1533,7 @@ authProcessRxAuth1Frame(IN struct ADAPTER *prAdapter,
 			OUT uint16_t *pu2ReturnStatusCode)
 {
 	struct WLAN_AUTH_FRAME *prAuthFrame;
+	uint16_t u2RxStatusCode;
 	uint16_t u2ReturnStatusCode = STATUS_CODE_SUCCESSFUL;
 
 	ASSERT(prSwRfb);
@@ -1527,6 +1556,17 @@ authProcessRxAuth1Frame(IN struct ADAPTER *prAdapter,
 	}
 
 	/* 4 <4> Parse the Fixed Fields of Authentication Frame Body. */
+#if CFG_SUPPORT_CFG80211_AUTH
+	u2RxStatusCode = (prAuthFrame->aucAuthData[3] << 8) +
+						 prAuthFrame->aucAuthData[2];
+#else
+	u2RxStatusCode = prAuthFrame->u2StatusCode;
+#endif
+	if (u2RxStatusCode != STATUS_CODE_RESERVED) {
+		DBGLOG(AAA, LOUD, "Invalid Status code %d\n", u2RxStatusCode);
+		return WLAN_STATUS_FAILURE;
+	}
+
 	if (prAuthFrame->u2AuthAlgNum != u2ExpectedAuthAlgNum)
 		u2ReturnStatusCode = STATUS_CODE_AUTH_ALGORITHM_NOT_SUPPORTED;
 

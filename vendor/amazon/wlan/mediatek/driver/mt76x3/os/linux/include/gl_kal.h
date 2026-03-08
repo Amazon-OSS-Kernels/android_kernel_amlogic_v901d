@@ -731,6 +731,14 @@ static inline void kalCfg80211ScanDone(struct cfg80211_scan_request *request,
 })
 #endif
 
+#define kalMemZAlloc(u4size, eMemType) ({    \
+	void *pvAddr; \
+	pvAddr = kalMemAlloc(u4size, eMemType);   \
+	if (pvAddr) \
+		kalMemSet(pvAddr, 0, u4size);   \
+	pvAddr; \
+})
+
 /*----------------------------------------------------------------------------*/
 /*!
  * \brief Free allocated cache memory
@@ -1527,7 +1535,8 @@ void kalWDevLockThread(IN struct GLUE_INFO* prGlueInfo,
 	IN uint8_t *pFrameBuf,
 	IN size_t frameLen,
 	IN struct cfg80211_bss *pBss,
-	IN int32_t uapsd_queues);
+	IN int32_t uapsd_queues,
+	IN uint8_t fgIsInterruptContext);
 #endif
 #endif
 
@@ -1658,6 +1667,8 @@ uint8_t kalRxNapiValidSkb(struct GLUE_INFO *prGlueInfo,
 int kalRxNapiPoll(struct napi_struct *napi, int budget);
 
 unsigned long kal_kallsyms_lookup_name(const char *name);
+
+void kal_kallsyms_put(const char *name);
 
 #ifdef CONFIG_PM_SLEEP
 int32_t kalPmResumeState(void);

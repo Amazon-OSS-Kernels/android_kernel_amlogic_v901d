@@ -209,7 +209,7 @@ u_int8_t kalDevRegRead(IN struct GLUE_INFO *prGlueInfo,
 				DBGLOG(HAL, ERROR,
 				       "Read register is deadfeed\n");
 				GL_RESET_TRIGGER(prAdapter,
-						 RST_FLAG_CHIP_RESET);
+						 RST_FLAG_CHIP_RESET, RST_DRV_OWN_FAIL);
 			}
 			return FALSE;
 		}

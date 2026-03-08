@@ -525,7 +525,6 @@ int mtk_cfg80211_vendor_config_roaming(struct wiphy *wiphy,
 	ASSERT(wdev);
 	if ((data == NULL) || (data_len == 0))
 		return -EINVAL;
-
 	prGlueInfo = (struct GLUE_INFO *) wiphy_priv(wiphy);
 	if (!prGlueInfo)
 		return -EINVAL;
@@ -614,7 +613,8 @@ int mtk_cfg80211_vendor_enable_roaming(struct wiphy *wiphy,
 
 	ASSERT(wiphy);	/* change to if (wiphy == NULL) then return? */
 	ASSERT(wdev);	/* change to if (wiphy == NULL) then return? */
-
+	if((data== NULL) || (data_len == 0))
+		return -EINVAL;
 	prGlueInfo = (struct GLUE_INFO *) wiphy_priv(wiphy);
 	if (!prGlueInfo)
 		return -EFAULT;

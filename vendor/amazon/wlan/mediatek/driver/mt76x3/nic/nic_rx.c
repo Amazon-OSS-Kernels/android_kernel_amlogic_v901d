@@ -1355,6 +1355,14 @@ void nicRxProcessForwardPkt(IN struct ADAPTER *prAdapter,
 		prSwRfb->pvPacket = NULL;
 		nicRxReturnRFB(prAdapter, prSwRfb);
 
+		/* prMsduInfo->ucUserPriority is a tainted expression */
+		/* check its value before sending into TX queue */
+		if(prMsduInfo->ucUserPriority >= TX_DESC_TID_NUM){
+			DBGLOG(QM, ERROR, "MsduInfo->ucUserPriority fails check\n");
+			cnmPktFree(prAdapter, prMsduInfo);
+			return;
+		}
+
 		/* increase forward frame counter */
 		GLUE_INC_REF_CNT(prTxCtrl->i4PendingFwdFrameCount);
 

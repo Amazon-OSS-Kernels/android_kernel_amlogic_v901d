@@ -716,8 +716,8 @@ void nicProcessAbnormalInterrupt(IN struct ADAPTER
 	prAdapter->prGlueInfo->IsrAbnormalCnt++;
 
 	halProcessAbnormalInterrupt(prAdapter);
-	glGetRstReason(RST_PROCESS_ABNORMAL_INT);
-	GL_RESET_TRIGGER(prAdapter, RST_FLAG_DO_CORE_DUMP);
+	GL_RESET_TRIGGER(prAdapter, RST_FLAG_DO_CORE_DUMP,
+						RST_PROCESS_ABNORMAL_INT);
 }
 
 /*----------------------------------------------------------------------------*/

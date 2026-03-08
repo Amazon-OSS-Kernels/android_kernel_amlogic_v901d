@@ -1967,6 +1967,12 @@ enum sdio_state glSdioGetState(struct GL_HIF_INFO *prHifInfo)
 void kalRemoveProbe(IN struct GLUE_INFO *prGlueInfo)
 {
 	struct mmc_host *host;
+	typedef void (*psdio_mmc_start_host) (struct mmc_host *host);
+	typedef void (*psdio_mmc_stop_host) (struct mmc_host *host);
+	psdio_mmc_start_host psdio_mmc_start_host_func =
+		(psdio_mmc_start_host) kal_kallsyms_lookup_name("mmc_start_host");
+	psdio_mmc_stop_host psdio_mmc_stop_host_func =
+		(psdio_mmc_stop_host) kal_kallsyms_lookup_name("mmc_stop_host");
 
 	ASSERT(prGlueInfo);
 
@@ -1974,11 +1980,28 @@ void kalRemoveProbe(IN struct GLUE_INFO *prGlueInfo)
 	host->rescan_entered = 0;
 
 	/* clear trx fifo */
-	DBGLOG(INIT, STATE, "[SER][L0] mmc_remove_host\n");
-	mmc_remove_host(prGlueInfo->rHifInfo.func->card->host);
+	if (psdio_mmc_start_host_func && psdio_mmc_stop_host_func) {
+		DBGLOG(INIT, STATE, "[SER][L0] mmc_stop_host\n");
+		psdio_mmc_stop_host_func(host);
+	} else {
+		DBGLOG(INIT, STATE, "[SER][L0] mmc_remove_host\n");
+		mmc_remove_host(host);
+	}
 
-	DBGLOG(INIT, STATE, "[SER][L0] mmc_add_host\n");
-	mmc_add_host(host);
+	if (psdio_mmc_start_host_func && psdio_mmc_stop_host_func) {
+		DBGLOG(INIT, STATE, "[SER][L0] mmc_start_host\n");
+		psdio_mmc_start_host_func(host);
+	} else {
+		DBGLOG(INIT, STATE, "[SER][L0] mmc_add_host\n");
+		mmc_add_host(host);
+	}
 
+	if(psdio_mmc_start_host_func) {
+		kal_kallsyms_put("mmc_start_host");
+	}
+
+	if(psdio_mmc_stop_host_func) {
+		kal_kallsyms_put("mmc_stop_host");
+	}
 }
 #endif

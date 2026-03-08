@@ -287,6 +287,21 @@ struct SUB_ELEMENT_LIST {
 	struct SUB_ELEMENT rSubIE;
 };
 
+#if CFG_SUPPORT_DFS
+struct SWITCH_CH_AND_BAND_PARAMS {
+	u_int8_t fgBeaconNewChannelIsDFS;
+	u_int8_t fgActionNewChannelIsDFS;
+	u_int8_t fgNewChannelIsDisabled;
+	uint8_t ucCsaNewCh;
+	uint8_t ucCsaCount;
+	uint8_t ucVhtS1;
+	uint8_t ucVhtS2;
+	uint8_t ucVhtBw;
+	enum ENUM_CHNL_EXT eSco;
+	uint8_t ucBssIndex;
+};
+#endif
+
 enum BCN_RM_STATE {
 	RM_NO_REQUEST,
 	RM_ON_GOING,
@@ -408,6 +423,21 @@ struct RADIO_MEASUREMENT_REPORT_PARAMS {
 	(_prAdapter)->rWifiVar.rConnSettings.uc5GBandwidthMode \
 	== CONFIG_BW_20_40M))
 
+#if CFG_SUPPORT_DFS
+#define MAX_CSA_COUNT 255
+#define HAS_CH_SWITCH_PARAMS(prCSAParams, prBssDesc) \
+	(prCSAParams->ucCsaNewCh > 0 && \
+	 prCSAParams->ucCsaNewCh != prBssDesc->ucChannelNum)
+#define HAS_SCO_PARAMS(prCSAParams) (prCSAParams->eSco > 0)
+#define HAS_WIDE_BAND_PARAMS(prCSAParams) \
+	(prCSAParams->ucVhtBw > 0 || \
+	 prCSAParams->ucVhtS1 > 0 || \
+	 prCSAParams->ucVhtS2 > 0)
+#define SHOULD_CH_SWITCH(current, prCSAParams, prBssDesc) \
+	(HAS_CH_SWITCH_PARAMS(prCSAParams, prBssDesc) && \
+	 (current < prCSAParams->ucCsaCount))
+#endif
+
 /*******************************************************************************
  *                   F U N C T I O N   D E C L A R A T I O N S
  *******************************************************************************
@@ -526,6 +556,11 @@ void rlmGenerateCountryIE(struct ADAPTER *prAdapter,
 #if CFG_SUPPORT_DFS
 void rlmProcessSpecMgtAction(struct ADAPTER *prAdapter,
 			     struct SW_RFB *prSwRfb);
+
+void rlmResetCSAParams(struct BSS_INFO *prBssInfo);
+
+void rlmCsaTimeout(IN struct ADAPTER *prAdapter,
+				unsigned long ulParamPtr);
 #endif
 
 void
@@ -643,6 +678,10 @@ void rlmProcessNeighborReportResonse(struct ADAPTER *prAdapter,
 				     uint16_t u2PacketLen);
 
 void rlmFillRrmCapa(uint8_t *pucCapa);
+
+void rlmRevisePreferBandwidthNss(struct ADAPTER *prAdapter,
+					uint8_t ucBssIndex,
+					struct STA_RECORD *prStaRec);
 
 void rlmSetMaxTxPwrLimit(IN struct ADAPTER *prAdapter, int8_t cLimit,
 			 uint8_t ucEnable);

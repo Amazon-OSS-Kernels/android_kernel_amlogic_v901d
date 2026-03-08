@@ -1365,6 +1365,8 @@ void wlanClearDataQueue(IN struct ADAPTER *prAdapter);
 void wlanClearRxToOsQueue(IN struct ADAPTER *prAdapter);
 #endif
 
+void wlanClearPendingCommandQueue(IN struct ADAPTER *prAdapter);
+
 void wlanReleaseCommand(IN struct ADAPTER *prAdapter,
 			IN struct CMD_INFO *prCmdInfo,
 			IN enum ENUM_TX_RESULT_CODE rTxDoneStatus);
@@ -1624,6 +1626,8 @@ void wlanCfgSetSwCtrl(IN struct ADAPTER *prAdapter);
 
 void wlanCfgSetChip(IN struct ADAPTER *prAdapter);
 
+void wlanCfgSetWowPorts(IN struct ADAPTER *prAdapter);
+
 void wlanCfgSetDebugLevel(IN struct ADAPTER *prAdapter);
 
 void wlanCfgSetCountryCode(IN struct ADAPTER *prAdapter);
@@ -1657,6 +1661,10 @@ uint32_t wlanCfgSetCb(IN struct ADAPTER *prAdapter, const int8_t *pucKey,
 uint32_t wlanCfgParse(IN struct ADAPTER *prAdapter, uint8_t *pucConfigBuf,
 		      uint32_t u4ConfigBufLen, u_int8_t isFwConfig);
 void wlanFeatureToFw(IN struct ADAPTER *prAdapter);
+#if CFG_SUPPORT_SEND_ONLY_ONE_CFG
+uint32_t wlanFeatureToFwOnlyOneCfg(IN struct ADAPTER *prAdapter,
+		     const int8_t *pucKey, int8_t *pucValue);
+#endif
 #endif
 
 void wlanLoadDefaultCustomerSetting(IN struct ADAPTER *prAdapter);

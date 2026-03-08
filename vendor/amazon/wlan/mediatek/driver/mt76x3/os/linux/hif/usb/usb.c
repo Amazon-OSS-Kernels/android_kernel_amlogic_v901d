@@ -452,7 +452,7 @@ u_int8_t mtk_usb_vendor_request(IN struct GLUE_INFO *prGlueInfo, IN uint8_t uEnd
 #if CFG_FTV_abc123_135_PATCH
 	if (ret != TransferBufferLength) {
 		DBGLOG(REQ, ERROR, "USB bus failure, trigger chip reset\n");
-		GL_RESET_TRIGGER(prGlueInfo->prAdapter, RST_FLAG_CHIP_RESET);
+		GL_RESET_TRIGGER(prGlueInfo->prAdapter, RST_FLAG_CHIP_RESET, RST_HIF_FAIL);
 	}
 #endif
 
@@ -1707,6 +1707,7 @@ void kalRemoveProbe(IN struct GLUE_INFO *prGlueInfo)
 				func_name, WIFI_DONGLE_RESET_GPIO_PIN, 1);
 		pFunc(WIFI_DONGLE_RESET_GPIO_PIN, 1);
 	}
+	kal_kallsyms_put(func_name);
 
 }
 #endif

@@ -896,6 +896,9 @@ uint32_t wlanAdapterStop(IN struct ADAPTER *prAdapter)
 	/* Release all CMD/MGMT/SEC frame in command queue */
 	kalClearCommandQueue(prAdapter->prGlueInfo);
 
+	/* Release all CMD in pending command queue */
+	wlanClearPendingCommandQueue(prAdapter);
+
 #if CFG_SUPPORT_MULTITHREAD
 
 	/* Flush all items in queues for multi-thread */
@@ -1081,7 +1084,8 @@ uint32_t wlanCheckWifiFunc(IN struct ADAPTER *prAdapter,
 				"[Wi-Fi] [Read WCIR_WLAN_READY fail!]");
 #else
 			GL_RESET_TRIGGER(prAdapter, RST_FLAG_DO_CORE_DUMP |
-					RST_FLAG_PREVENT_POWER_OFF);
+					RST_FLAG_PREVENT_POWER_OFF,
+					RST_DRV_OWN_FAIL);
 #endif
 			u4Status = WLAN_STATUS_FAILURE;
 			break;
@@ -2012,6 +2016,48 @@ void wlanClearRxToOsQueue(IN struct ADAPTER *prAdapter)
 
 /*----------------------------------------------------------------------------*/
 /*!
+ * \brief This routine is used to clear all commands in pending command queue
+ * \param prAdapter  Pointer of Adapter Data Structure
+ *
+ * \retval none
+*/
+/*----------------------------------------------------------------------------*/
+void wlanClearPendingCommandQueue(IN struct ADAPTER *prAdapter)
+{
+	struct QUE rTempCmdQue;
+	struct QUE *prTempCmdQue = &rTempCmdQue;
+	struct QUE_ENTRY *prQueueEntry = (struct QUE_ENTRY *) NULL;
+	struct CMD_INFO *prCmdInfo = (struct CMD_INFO *) NULL;
+
+	KAL_SPIN_LOCK_DECLARATION();
+	QUEUE_INITIALIZE(prTempCmdQue);
+
+	ASSERT(prAdapter);
+
+	KAL_ACQUIRE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_PENDING);
+
+	QUEUE_MOVE_ALL(prTempCmdQue,&prAdapter->rPendingCmdQueue);
+
+	KAL_RELEASE_SPIN_LOCK(prAdapter, SPIN_LOCK_CMD_PENDING);
+
+	QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, struct QUE_ENTRY *);
+
+	while (prQueueEntry) {
+		prCmdInfo = (struct CMD_INFO *) prQueueEntry;
+
+		if (prCmdInfo->pfCmdTimeoutHandler)
+			prCmdInfo->pfCmdTimeoutHandler(prAdapter, prCmdInfo);
+		else
+			wlanReleaseCommand(prAdapter, prCmdInfo, TX_RESULT_QUEUE_CLEARANCE);
+
+		nicTxCancelSendingCmd(prAdapter, prCmdInfo);
+		cmdBufFreeCmdInfo(prAdapter, prCmdInfo);
+		QUEUE_REMOVE_HEAD(prTempCmdQue, prQueueEntry, struct QUE_ENTRY *);
+	}
+}
+
+/*----------------------------------------------------------------------------*/
+/*!
  * \brief This function will release thd CMD_INFO upon its attribution
  *
  * \param prAdapter  Pointer of Adapter Data Structure
@@ -2128,9 +2174,8 @@ void wlanReleasePendingOid(IN struct ADAPTER *prAdapter,
 				       "No response from chip for %u times, set NoAck flag!\n",
 				       prAdapter->ucOidTimeoutCount);
 #if CFG_abc123_CMD_BUF_DEBUG
-				glGetRstReason(RST_OID_TIMEOUT);
 				GL_RESET_TRIGGER(prAdapter,
-						 RST_FLAG_CHIP_RESET);
+						 RST_FLAG_CHIP_RESET, RST_OID_TIMEOUT);
 #endif
 			}
 
@@ -3055,7 +3100,8 @@ uint32_t wlanAccessRegisterStatus(IN struct ADAPTER *prAdapter,
 		    u4EventLen, &u4RxPktLength) != WLAN_STATUS_SUCCESS) {
 			GL_RESET_TRIGGER(prAdapter,
 					 RST_FLAG_DO_CORE_DUMP |
-					 RST_FLAG_PREVENT_POWER_OFF);
+					 RST_FLAG_PREVENT_POWER_OFF,
+					 RST_DRV_OWN_FAIL);
 			u4Status = WLAN_STATUS_FAILURE;
 			break;
 		} else {
@@ -3089,7 +3135,8 @@ uint32_t wlanAccessRegisterStatus(IN struct ADAPTER *prAdapter,
 				&& (ucSetQuery == 0))) {
 				GL_RESET_TRIGGER(prAdapter,
 						 RST_FLAG_DO_CORE_DUMP |
-						 RST_FLAG_PREVENT_POWER_OFF);
+						 RST_FLAG_PREVENT_POWER_OFF,
+						 RST_CR_ACCESS_FAIL);
 				u4Status = WLAN_STATUS_FAILURE;
 				DBGLOG(INIT, ERROR,
 				       "wlanAccessRegisterStatus: incorrect ucEID. ucSetQuery = 0x%x\n",
@@ -3099,7 +3146,9 @@ uint32_t wlanAccessRegisterStatus(IN struct ADAPTER *prAdapter,
 				u4Status = WLAN_STATUS_FAILURE;
 				GL_RESET_TRIGGER(prAdapter,
 						 RST_FLAG_DO_CORE_DUMP |
-						 RST_FLAG_PREVENT_POWER_OFF);
+						 RST_FLAG_PREVENT_POWER_OFF,
+						 RST_CR_ACCESS_FAIL);
+				u4Status = WLAN_STATUS_FAILURE;
 				DBGLOG(INIT, ERROR,
 				       "wlanAccessRegisterStatus: incorrect ucCmdSeqNum. = 0x%x\n",
 				       ucCmdSeqNum);
@@ -6852,6 +6901,124 @@ void wlanCfgSetSwCtrl(IN struct ADAPTER *prAdapter)
 	}
 }
 
+void wlanCfgSetWowPorts(IN struct ADAPTER *prAdapter)
+{
+	uint32_t i = 0, count;
+	uint16_t u2Port = 0;
+	struct WOW_CTRL *pWOW_CTRL = NULL;
+
+	int8_t aucKey[WLAN_CFG_VALUE_LEN_MAX];
+	int8_t aucValue[WLAN_CFG_VALUE_LEN_MAX];
+
+	int32_t  u4Ret = 0;
+
+	pWOW_CTRL = &prAdapter->rWowCtrl;
+
+	/* check IPv4TcpPort */
+	for (i = 0, count = 0; i < MAX_TCP_UDP_PORT; i++) {
+		kalMemZero(aucValue, WLAN_CFG_VALUE_LEN_MAX);
+		kalMemZero(aucKey, WLAN_CFG_VALUE_LEN_MAX);
+		kalScnprintf(aucKey, sizeof(aucKey), "IPv4TcpPort%d", i);
+
+		/* get nothing */
+		if (wlanCfgGet(prAdapter, aucKey, aucValue, "",
+			       0) != WLAN_STATUS_SUCCESS)
+			continue;
+		if (!kalStrCmp(aucValue, ""))
+			continue;
+
+		/* store this port */
+		u4Ret = kalkStrtou16(aucValue, 0, &u2Port);
+		if (u4Ret) {
+			DBGLOG(INIT, LOUD,
+				"parse au4Values error u4Ret=%d\n", u4Ret);
+			continue;
+		}
+
+		pWOW_CTRL->stWowPort.ausIPv4TcpPort[count++] = u2Port;
+	}
+
+	pWOW_CTRL->stWowPort.ucIPv4TcpPortCnt = count;
+
+	/* check IPv4UdpPort */
+	for (i = 0, count = 0; i < MAX_TCP_UDP_PORT; i++) {
+		kalMemZero(aucValue, WLAN_CFG_VALUE_LEN_MAX);
+		kalMemZero(aucKey, WLAN_CFG_VALUE_LEN_MAX);
+		kalScnprintf(aucKey, sizeof(aucKey), "IPv4UdpPort%d", i);
+
+		/* get nothing */
+		if (wlanCfgGet(prAdapter, aucKey, aucValue, "",
+			       0) != WLAN_STATUS_SUCCESS)
+			continue;
+		if (!kalStrCmp(aucValue, ""))
+			continue;
+
+		/* store this port */
+		u4Ret = kalkStrtou16(aucValue, 0, &u2Port);
+		if (u4Ret) {
+			DBGLOG(INIT, LOUD,
+				"parse au4Values error u4Ret=%d\n", u4Ret);
+			continue;
+		}
+
+		pWOW_CTRL->stWowPort.ausIPv4UdpPort[count++] = u2Port;
+	}
+
+	pWOW_CTRL->stWowPort.ucIPv4UdpPortCnt = count;
+
+	/* check IPv6TcpPort */
+	for (i = 0, count = 0; i < MAX_TCP_UDP_PORT; i++) {
+		kalMemZero(aucValue, WLAN_CFG_VALUE_LEN_MAX);
+		kalMemZero(aucKey, WLAN_CFG_VALUE_LEN_MAX);
+		kalScnprintf(aucKey, sizeof(aucKey), "IPv6TcpPort%d", i);
+
+		/* get nothing */
+		if (wlanCfgGet(prAdapter, aucKey, aucValue, "",
+			       0) != WLAN_STATUS_SUCCESS)
+			continue;
+		if (!kalStrCmp(aucValue, ""))
+			continue;
+
+		/* store this port */
+		u4Ret = kalkStrtou16(aucValue, 0, &u2Port);
+		if (u4Ret) {
+			DBGLOG(INIT, LOUD,
+				"parse au4Values error u4Ret=%d\n", u4Ret);
+			continue;
+		}
+
+		pWOW_CTRL->stWowPort.ausIPv6TcpPort[count++] = u2Port;
+	}
+
+	pWOW_CTRL->stWowPort.ucIPv6TcpPortCnt = count;
+
+	/* check IPv6UdpPort */
+	for (i = 0, count = 0; i < MAX_TCP_UDP_PORT; i++) {
+		kalMemZero(aucValue, WLAN_CFG_VALUE_LEN_MAX);
+		kalMemZero(aucKey, WLAN_CFG_VALUE_LEN_MAX);
+		kalScnprintf(aucKey, sizeof(aucKey), "IPv6UdpPort%d", i);
+
+		/* get nothing */
+		if (wlanCfgGet(prAdapter, aucKey, aucValue, "",
+			       0) != WLAN_STATUS_SUCCESS)
+			continue;
+		if (!kalStrCmp(aucValue, ""))
+			continue;
+
+		/* store this port */
+		u4Ret = kalkStrtou16(aucValue, 0, &u2Port);
+		if (u4Ret) {
+			DBGLOG(INIT, LOUD,
+				"parse au4Values error u4Ret=%d\n", u4Ret);
+			continue;
+		}
+
+		pWOW_CTRL->stWowPort.ausIPv6UdpPort[count++] = u2Port;
+	}
+
+	pWOW_CTRL->stWowPort.ucIPv6UdpPortCnt = count;
+}
+
 void wlanCfgSetChip(IN struct ADAPTER *prAdapter)
 {
 	uint32_t i = 0;
@@ -8191,6 +8358,105 @@ exit:
 	return WLAN_STATUS_SUCCESS;
 }
 
+#if CFG_SUPPORT_SEND_ONLY_ONE_CFG
+uint32_t wlanFeatureToFwOnlyOneCfg(IN struct ADAPTER *prAdapter,
+		     const int8_t *pucKey, int8_t *pucValue)
+{
+	struct CMD_HEADER rCmdV1Header;
+	struct CMD_FORMAT_V1 rCmd_v1;
+	uint32_t rStatus;
+	uint8_t roffset = 0;
+
+	ASSERT(pucKey);
+
+	rCmdV1Header.cmdType = CMD_TYPE_SET;
+	rCmdV1Header.cmdVersion = CMD_VER_1;
+	rCmdV1Header.cmdBufferLen = 0;
+	rCmdV1Header.itemNum = 0;
+
+	kalMemSet(rCmdV1Header.buffer, 0, MAX_CMD_BUFFER_LENGTH);
+	kalMemSet(&rCmd_v1, 0, sizeof(struct CMD_FORMAT_V1));
+
+	if (pucKey != NULL && pucValue != NULL) {
+
+		rCmd_v1.itemType = ITEM_TYPE_STR;
+
+
+		/*send string format to firmware */
+		rCmd_v1.itemStringLength = kalStrLen(pucKey);
+
+		if (rCmd_v1.itemStringLength > MAX_CMD_NAME_MAX_LENGTH)
+			return WLAN_STATUS_INVALID_LENGTH;
+
+		kalMemZero(rCmd_v1.itemString, MAX_CMD_NAME_MAX_LENGTH);
+		kalMemCopy(rCmd_v1.itemString, pucKey,
+			   rCmd_v1.itemStringLength);
+
+
+		rCmd_v1.itemValueLength = kalStrLen(pucValue);
+
+		if (rCmd_v1.itemValueLength > MAX_CMD_VALUE_MAX_LENGTH)
+			return WLAN_STATUS_INVALID_LENGTH;
+
+		kalMemZero(rCmd_v1.itemValue, MAX_CMD_VALUE_MAX_LENGTH);
+		kalMemCopy(rCmd_v1.itemValue, pucValue,
+			   rCmd_v1.itemValueLength);
+
+
+		DBGLOG(INIT, INFO,
+			   "Send key word (%s) WITH (%s) to firmware\n",
+			   rCmd_v1.itemString, rCmd_v1.itemValue);
+
+		kalMemCopy(((struct CMD_FORMAT_V1 *)rCmdV1Header.buffer)
+			   + roffset,
+			   &rCmd_v1, sizeof(struct CMD_FORMAT_V1));
+
+
+		rCmdV1Header.cmdBufferLen =
+					sizeof(struct CMD_FORMAT_V1);
+		rCmdV1Header.itemNum = 1;
+
+		/* Send to FW */
+
+		rStatus = wlanSendSetQueryCmd(
+				/* prAdapter */
+				prAdapter,
+				/* 0x70 */
+				CMD_ID_GET_SET_CUSTOMER_CFG,
+				/* fgSetQuery */
+				TRUE,
+				/* fgNeedResp */
+				FALSE,
+				/* fgIsOid */
+				FALSE,
+				/* pfCmdDoneHandler*/
+				NULL,
+				/* pfCmdTimeoutHandler */
+				NULL,
+				/* u4SetQueryInfoLen */
+				sizeof(struct CMD_HEADER),
+				/* pucInfoBuffer */
+				(uint8_t *)&rCmdV1Header,
+				/* pvSetQueryBuffer */
+				NULL,
+				/* u4SetQueryBufferLen */
+				0);
+
+		if (rStatus == WLAN_STATUS_FAILURE)
+			DBGLOG(INIT, INFO,
+				   "[Fail]kalIoctl wifiSefCFG fail 0x%x\n",
+				   rStatus);
+
+		kalMemSet(rCmdV1Header.buffer, 0,
+			  MAX_CMD_BUFFER_LENGTH);
+		rCmdV1Header.cmdBufferLen = 0;
+	} else {
+		return WLAN_STATUS_INVALID_DATA;
+	}
+	return rStatus;
+}
+#endif
+
 #else
 uint32_t wlanCfgParse(IN struct ADAPTER *prAdapter,
 		      uint8_t *pucConfigBuf, uint32_t u4ConfigBufLen)
@@ -8911,9 +9177,9 @@ void wlanN9CorDumpTimeOut(IN struct ADAPTER *prAdapter,
 #ifdef CFG_SUPPORT_CONNAC2X
 #else
 		/* Trigger RESET */
-		glGetRstReason(RST_FW_ASSERT);
 		DBGLOG(INIT, STATE, "eResetReason = %d\n", eResetReason);
-		GL_RESET_TRIGGER(prAdapter, RST_FLAG_CHIP_RESET);
+		GL_RESET_TRIGGER(prAdapter, RST_FLAG_CHIP_RESET,
+							RST_FW_ASSERT);
 #endif
 #endif
 
@@ -8932,8 +9198,8 @@ void wlanCr4CorDumpTimeOut(IN struct ADAPTER *prAdapter,
 #ifdef CFG_SUPPORT_CONNAC2X
 #else
 		/* Trigger RESET */
-		glGetRstReason(RST_FW_ASSERT);
-		GL_RESET_TRIGGER(prAdapter, RST_FLAG_CHIP_RESET);
+		GL_RESET_TRIGGER(prAdapter, RST_FLAG_CHIP_RESET,
+							RST_FW_ASSERT);
 #endif
 #endif
 	}

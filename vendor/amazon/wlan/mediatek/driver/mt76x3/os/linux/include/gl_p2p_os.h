@@ -230,6 +230,10 @@ struct GL_P2P_INFO {
 	/*BOOLEAN fgEnableHotspotOptimization;*//* TH3 multiple P2P */
 	/*UINT_32 u4PsLevel;*//* TH3 multiple P2P */
 #endif
+
+#if CFG_RESET_DUE_TO_REG_NETDEV_FAIL
+	u_int8_t fgIsNetDevRegistered;
+#endif
 };
 
 struct GL_P2P_DEV_INFO {

@@ -2955,8 +2955,6 @@ enum ENUM_AIS_STATE aisFsmJoinCompleteAction(IN struct ADAPTER *prAdapter,
 			/* Completion of roaming */
 			if (prAisBssInfo->eConnectionState ==
 			    PARAM_MEDIA_STATE_CONNECTED) {
-
-#if CFG_SUPPORT_ROAMING
 				/* 2. Deactivate previous BSS */
 				aisFsmRoamingDisconnectPrevAP(prAdapter,
 							      prStaRec);
@@ -2965,7 +2963,6 @@ enum ENUM_AIS_STATE aisFsmJoinCompleteAction(IN struct ADAPTER *prAdapter,
 				aisUpdateBssInfoForRoamingAP(prAdapter,
 							     prStaRec,
 							     prAssocRspSwRfb);
-#endif /* CFG_SUPPORT_ROAMING */
 			} else {
 				kalResetStats(prAdapter->
 					prGlueInfo->prDevHandler);
@@ -5464,6 +5461,7 @@ enum ENUM_AIS_STATE aisFsmRoamingScanResultsUpdate(IN struct ADAPTER *prAdapter)
 
 	return eNextState;
 }				/* end of aisFsmRoamingScanResultsUpdate() */
+#endif /* CFG_SUPPORT_ROAMING */
 
 /*----------------------------------------------------------------------------*/
 /*!
@@ -5606,8 +5604,6 @@ void aisUpdateBssInfoForRoamingAP(IN struct ADAPTER *prAdapter,
 	aisIndicationOfMediaStateToHost(prAdapter, PARAM_MEDIA_STATE_CONNECTED,
 					FALSE);
 }				/* end of aisFsmRoamingUpdateBss() */
-
-#endif /* CFG_SUPPORT_ROAMING */
 
 /*----------------------------------------------------------------------------*/
 /*!

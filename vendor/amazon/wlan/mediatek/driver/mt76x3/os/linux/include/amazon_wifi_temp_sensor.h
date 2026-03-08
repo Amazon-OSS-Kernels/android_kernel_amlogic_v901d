@@ -18,6 +18,7 @@
 int wifi_temp_sensor_init(void);
 int wifi_temp_sensor_exit(void);
 
-int wifi_temp_sensor_register(P_GLUE_INFO_T prGlueInfo);
+int wifi_temp_sensor_register(struct GLUE_INFO *prGlueInfo);
+int wifi_temp_sensor_deregister(void);
 
 #endif

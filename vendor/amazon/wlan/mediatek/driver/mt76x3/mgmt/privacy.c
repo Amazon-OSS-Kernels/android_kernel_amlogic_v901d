@@ -1124,6 +1124,7 @@ secPrivacySeekForBcEntry(IN struct ADAPTER *prAdapter,
 		  prBSSInfo->eNetworkType == NETWORK_TYPE_AIS)
 		fgCheckKeyId = FALSE;
 
+	/* Reserve index 0 for BIP use */
 	ucStartIDX = 1;
 	ucMaxIDX = prAdapter->ucTxDefaultWlanIndex - 1;
 
@@ -1131,43 +1132,44 @@ secPrivacySeekForBcEntry(IN struct ADAPTER *prAdapter,
 	DBGLOG(INIT, INFO, "OpMode:%d, NetworkType:%d, CheckKeyId:%d\n",
 	       prBSSInfo->eCurrentOPMode, prBSSInfo->eNetworkType,
 	       fgCheckKeyId);
-/*always use index 0 for BIP*/
+
+	/* always use index 0 for BIP */
 	if (ucAlg == CIPHER_SUITE_BIP) {
 		ucEntry = 0;
 	}
 	else {
 		for (i = ucStartIDX; i <= ucMaxIDX; i++) {
+			if (!(prWtbl[i].ucUsed && !prWtbl[i].ucPairwise
+				&& prWtbl[i].ucBssIndex == ucBssIndex))
+				continue;
 
-			if (prWtbl[i].ucUsed && !prWtbl[i].ucPairwise
-				&& prWtbl[i].ucBssIndex == ucBssIndex) {
+			if (!fgCheckKeyId) {
+				ucEntry = i;
+				DBGLOG(RSN, TRACE,
+					   "[Wlan index]: Reuse entry #%d for open/wep/wpi\n",
+					   i);
+				break;
+			}
 
-				if (!fgCheckKeyId) {
-					ucEntry = i;
-					DBGLOG(RSN, TRACE,
-					       "[Wlan index]: Reuse entry #%d for open/wep/wpi\n",
-					       i);
-					break;
-				}
-
-				if (fgCheckKeyId && (prWtbl[i].ucKeyId == ucKeyId
+			if (fgCheckKeyId
+				&& (prWtbl[i].ucKeyId == ucKeyId
 					|| prWtbl[i].ucKeyId == 0xFF)) {
-					ucEntry = i;
-					DBGLOG(RSN, TRACE,
-						"[Wlan index]: Reuse entry #%d\n", i);
-					break;
-				}
+				ucEntry = i;
+				DBGLOG(RSN, TRACE,
+					"[Wlan index]: Reuse entry #%d\n", i);
+				break;
 			}
 		}
 	}
 
 	if (i == (ucMaxIDX + 1)) {
 		for (i = ucStartIDX; i <= ucMaxIDX; i++) {
-			if (prWtbl[i].ucUsed == FALSE) {
-				ucEntry = i;
-				DBGLOG(RSN, TRACE,
-				       "[Wlan index]: Assign entry #%d\n", i);
-				break;
-			}
+			if (prWtbl[i].ucUsed == TRUE)
+				continue;
+			ucEntry = i;
+			DBGLOG(RSN, TRACE,
+				   "[Wlan index]: Assign entry #%d\n", i);
+			break;
 		}
 	}
 

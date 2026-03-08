@@ -76,12 +76,31 @@
 #include "precomp.h"
 #include "gl_rst.h"
 
+static void glResetTriggerUpdateCnt(uint32_t u4RstFlag);
+
 /*******************************************************************************
  *                              C O N S T A N T S
  *******************************************************************************
  */
+// update chip_reset_info.c if apcChipResetReason / apcChipResetAction have
+// changed
+const char *const apcChipResetReason[RST_REASON_MAX] = {
+	"RST_UNKNOWN",
+	"RST_PROCESS_ABNORMAL_INT",
+	"RST_DRV_OWN_FAIL",
+	"RST_FW_ASSERT",
+	"RST_BT_TRIGGER",
+	"RST_OID_TIMEOUT",
+	"RST_CMD_TRIGGER",
+	"RST_CR_ACCESS_FAIL",
+	"RST_HIF_FAIL",
+	"RST_PROBE_FAIL",
+};
 
-
+const char *const apcChipResetAction[] = {
+	"RST_FLAG_DO_CORE_DUMP",
+	"RST_FLAG_PREVENT_POWER_OFF",
+};
 
 /*******************************************************************************
  *                            P U B L I C   D A T A
@@ -209,6 +228,49 @@ u_int8_t kalIsResetting(void)
 	return fgIsResetting;
 }
 
+static void glResetTriggerUpdateCnt(uint32_t u4RstFlag)
+{
+	uint32_t i;
+	typedef uint32_t (*p_inc_func_type) (uint32_t);
+	p_inc_func_type inc_func;
+	char *reason_func_name = "incChipResetReasonCnt";
+	char *action_func_name = "incChipResetActionCnt";
+	void *pvAddrReason = NULL;
+	void *pvAddrAction = NULL;
+
+	pvAddrReason = (void *) kal_kallsyms_lookup_name(reason_func_name);
+	pvAddrAction = (void *) kal_kallsyms_lookup_name(action_func_name);
+
+	if (eResetReason >= 0 && eResetReason < RST_REASON_MAX) {
+		DBGLOG(INIT, ERROR, "reset reason %s\n",
+			apcChipResetReason[eResetReason]);
+		if(pvAddrReason) {
+			inc_func = (p_inc_func_type) pvAddrReason;
+			inc_func(eResetReason);
+			kal_kallsyms_put(reason_func_name);
+		}
+		else {
+			DBGLOG(INIT, ERROR, "%s does not exist\n", reason_func_name);
+		}
+	}
+	else
+		DBGLOG(INIT, ERROR, "unsupported reason %d\n", eResetReason);
+
+	for (i = 0; i < sizeof(apcChipResetAction) / sizeof(char *); i++) {
+		if (u4RstFlag & BIT(i)) {
+			DBGLOG(INIT, ERROR, "action %s\n", apcChipResetAction[i]);
+			if(pvAddrAction) {
+				inc_func = (p_inc_func_type) pvAddrAction;
+				inc_func(i);
+				kal_kallsyms_put(action_func_name);
+			}
+			else {
+				DBGLOG(INIT, ERROR, "%s does not exist\n", action_func_name);
+			}
+		}
+	}
+
+}
 
 u_int8_t glResetTrigger(struct ADAPTER *prAdapter,
 		uint32_t u4RstFlag, const uint8_t *pucFile, uint32_t u4Line)
@@ -273,6 +335,8 @@ u_int8_t glResetTrigger(struct ADAPTER *prAdapter,
 		(uint16_t)(u2FwOwnVersion & BITS(0, 7)),
 		(uint16_t)(u2FwPeerVersion >> 8),
 		(uint16_t)(u2FwPeerVersion & BITS(0, 7)));
+
+	glResetTriggerUpdateCnt(u4RstFlag);
 
 	prAdapter->u4HifDbgFlag |= DEG_HIF_DEFAULT_DUMP;
 	halPrintHifDbgInfo(prAdapter);
@@ -532,8 +596,10 @@ static u_int8_t is_bt_exist(void)
 	char *bt_func_name = "WF_rst_L0_notify_BT_step1";
 
 	bt_func = (p_bt_fun_type) kal_kallsyms_lookup_name(bt_func_name);
-	if (bt_func)
+	if (bt_func) {
+		kal_kallsyms_put(bt_func_name);
 		return TRUE;
+	}
 
 	DBGLOG(INIT, ERROR, "[SER][L0] %s does not exist\n", bt_func_name);
 	return FALSE;
@@ -551,7 +617,11 @@ static u_int8_t rst_L0_notify_step1(u_int8_t force_reset)
 			(p_bt_fun_type) kal_kallsyms_lookup_name(bt_func_name);
 		if (bt_func) {
 			if(bt_func(force_reset) != TRUE) {
+				kal_kallsyms_put(bt_func_name);
 				return BT_RESET_NOT_READY;
+			}
+			else {
+				kal_kallsyms_put(bt_func_name);
 			}
 		} else {
 			DBGLOG(INIT, ERROR,
@@ -576,7 +646,11 @@ static u_int8_t rst_L0_notify_step2(void)
 			(p_bt_fun_type) kal_kallsyms_lookup_name(bt_func_name);
 		if (bt_func) {
 			if(bt_func() != TRUE) {
+				kal_kallsyms_put(bt_func_name);
 				return BT_RESET_NOT_READY;
+			}
+			else {
+				kal_kallsyms_put(bt_func_name);
 			}
 		} else {
 			DBGLOG(INIT, WARN, "[SER][L0] %s does not exist\n",
@@ -597,7 +671,11 @@ static u_int8_t rst_L0_notify_step2(void)
 		(p_bt_fun_type) kal_kallsyms_lookup_name(bt_func_name);
 	if (bt_func) {
 		if(bt_func() != TRUE) {
+			kal_kallsyms_put(bt_func_name);
 			return BT_RESET_NOT_READY;
+		}
+		else {
+			kal_kallsyms_put(bt_func_name);
 		}
 	} else {
 		DBGLOG(INIT, WARN, "[SER][L0] %s does not exist\n",
@@ -625,8 +703,7 @@ int32_t BT_rst_L0_notify_WF_step1(int32_t force_reset)
 		}
 	}
 
-	glGetRstReason(RST_BT_TRIGGER);
-	GL_RESET_TRIGGER(NULL, RST_FLAG_CHIP_RESET);
+	GL_RESET_TRIGGER(NULL, RST_FLAG_CHIP_RESET, RST_BT_TRIGGER);
 
 	return TRUE;
 }

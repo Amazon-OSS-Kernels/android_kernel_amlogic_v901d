@@ -603,6 +603,12 @@ struct BSS_INFO {
 
 	enum PARAM_POWER_MODE ePowerModeFromUser2G;
 	enum PARAM_POWER_MODE ePowerModeFromUser5G;
+
+#if CFG_SUPPORT_DFS
+	struct TIMER rCsaTimer;
+	struct SWITCH_CH_AND_BAND_PARAMS CSAParams;
+	uint8_t fgHasStopTx;
+#endif
 };
 
 /* Support AP Selection */

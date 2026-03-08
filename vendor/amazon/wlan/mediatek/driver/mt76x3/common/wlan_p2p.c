@@ -591,6 +591,8 @@ wlanoidSetP2pNetworkAddress(IN struct ADAPTER *prAdapter,
 			(unsigned long) (prNWAddress->u2AddressLength +
 			OFFSET_OF(struct PARAM_NETWORK_ADDRESS, aucAddress)));
 	}
+	if (u4IpAddressCount > ARPNS_IP_ADDR_NUM)
+		return WLAN_STATUS_INVALID_DATA;
 
 	/* construct payload of command packet */
 	u4CmdSize =
