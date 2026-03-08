@@ -626,3 +626,71 @@ country BR: DFS-FCC
 	# 5825 (Channel 165) - 5825 (Channel 165)]
 	# 1W measure peak power or RMS (conducted) Indoor & Outdoor
 	(5815 - 5835 @ 20), (30)
+
+country CY:
+	# Follow European standard CE marking
+	(2402 - 2482 @ 40), (100 mW)
+	(5170 - 5250 @ 80), (100 mW), NO-OUTDOOR, AUTO-BW
+	(5250 - 5330 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW
+	(5490 - 5690 @ 20), (500 mW), DFS
+	(5690 - 5710 @ 20), (500 mW), DFS
+
+country TW: DFS-FCC
+	(2402 - 2472 @ 40), (30)
+	# 5.15 ~ 5.25 GHz: 30 dBm for master mode, 23 dBm for clients
+	(5170 - 5250 @ 80), (23), AUTO-BW
+	(5250 - 5330 @ 80), (23), DFS, AUTO-BW
+	(5490 - 5730 @ 160), (23), DFS
+	(5735 - 5835 @ 80), (30)
+
+country ZA:
+	# 2.400 - 2.4835GHz(Ch 1 - 11) : 100mW for indoor and outdoor
+	(2402 - 2472 @ 40), (20)
+	# Channel 12 - 13, 200mW for indoor only
+	(2457 - 2482 @ 20), (200mW), NO-OUTDOOR, DFS, AUTO-BW
+	# 5.15 - 5.25GHz(Ch 36 - 48) : 200mW for indoor and outdoor
+	(5170 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW
+	# 5.15 - 5.25GHz(Ch 52 - 64)) : 200mW for indoor and outdoor
+	(5250 - 5330 @ 80), (200 mW), NO-OUTDOOR, DFS, AUTO-BW
+	# 5.15 - 5.25GHz(Ch 100 - 140) : 1000mW for indoor and outdoor
+	(5490 - 5710 @ 160), (1000 mW), DFS, PASSIVE-SCAN
+	# 5.15 - 5.25GHz(Ch  149 - 161) : 4W = 4000mW for indoor and outdoor
+	(5735 - 5815 @ 80), (4000 mW)
+	# 5.15 - 5.25GHz(Ch 165) : 4W = 4000mW for indoor and outdoor
+	(5815 - 5835 @ 20), (4000 mW)
+
+country TH:
+	# 2.400 - 2.4835GHz(Ch 1 - 11) : 100mW for indoor and outdoor
+	(2402 - 2472 @ 40), (20)
+	# Channel 12 - 13, NBTC 1010-2550 5170~5320MHz:
+	# 200mW(indoor only)Outdoor cannot use this frequency.
+	(2457 - 2482 @ 20), (200mW), NO-OUTDOOR, DFS, AUTO-BW
+	# NBTC 1010-2550, 5170~5320MHz: 200mW(indoor only)Outdoor cannot use this frequency.
+	# 5.15 - 5.25GHz(Ch 36 - 48) : 200mW for indoor and outdoor
+	# NBTC 1010-2550, 5170~5320MHz: 200mW(indoor only)Outdoor cannot use this frequency.
+	(5170 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW
+	# 5.15 - 5.25GHz(Ch 52 - 64)) : 200mW for indoor and outdoor
+	# NBTC 1010-2550, 5170~5320MHz: 200mW(indoor only)Outdoor cannot use this frequency.
+	(5250 - 5330 @ 80), (200 mW), NO-OUTDOOR, DFS, AUTO-BW
+	# 5.15 - 5.25GHz(Ch 100 - 140) : 1000mW for indoor and outdoor
+	# NBTC 1010-2550, 5500~5680MHz: 1000mW(indoor/outdoor)
+	(5490 - 5710 @ 160), (1000 mW), DFS, PASSIVE-SCAN
+	# 5.470 - 5.725GHz(Ch 144) NBTC 1010-2550, 5500~5680MHz: 1000mW(indoor/outdoor)
+	(5710 - 5730 @ 20), (30), DFS, PASSIVE-SCAN
+	# 5.15 - 5.25GHz(Ch  149 - 161) : 1000mW for indoor and outdoor
+	# NBTC 1010-2550, 5700~5825MHz: 1000mW(indoor/outdoor)
+	(5735 - 5815 @ 80), (1000 mW)
+	# 5.15 - 5.25GHz(Ch 165) : 1000mW for indoor and outdoor
+	# NBTC 1010-25505700~5825MHz: 1000mW(indoor/outdoor)
+	(5815 - 5835 @ 20), (1000 mW)
+
+country TR:
+	# 2.400 - 2.4835GHz(Ch 1 - 11) : 100mW for indoor and outdoor
+	(2402 - 2472 @ 40), (20)
+	# Channel 12 - 13, 200mW for indoor only
+	(2457 - 2482 @ 20), (200mW), NO-OUTDOOR, DFS, AUTO-BW
+	# NBTC 1010-25505170~5320MHz: 200mW(indoor only)Outdoor cannot use this frequency.
+	# 5.15 - 5.25GHz(Ch 36 - 48) : 200mW for indoor and outdoor
+	(5170 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW
+	# 5.15 - 5.25GHz(Ch 52 - 64)) : 200mW for indoor and outdoor
+	(5250 - 5330 @ 80), (200 mW), NO-OUTDOOR, DFS, AUTO-BW

@@ -231,7 +231,7 @@
 /*
  * Numbers of modules support
  */
-#define FTS_GET_MODULE_NUM                      0
+#define FTS_GET_MODULE_NUM                      2 //0
 
 /*
  * module_id: mean vendor_id generally, also maybe gpio or lcm_id...
@@ -240,8 +240,8 @@
  * FTS_GET_MODULE_NUM >= 2, compatible with FTS_MODULE2_ID
  * FTS_GET_MODULE_NUM >= 3, compatible with FTS_MODULE3_ID
  */
-#define FTS_MODULE_ID                          0x0000
-#define FTS_MODULE2_ID                         0x0000
+#define FTS_MODULE_ID                          0x82//0x0000
+#define FTS_MODULE2_ID                         0x83//0x0000
 #define FTS_MODULE3_ID                         0x0000
 
 /*
@@ -262,13 +262,13 @@
  * NOTE: if FTS_GET_MODULE_NUM > 1, it's the fw corresponding with FTS_VENDOR_ID
  */
 
-#define FTS_UPGRADE_FW_FILE "include/firmware/FT3617_HSD8_V14_D01_20210505_app.i"
-//	20210427 touch driver update to v14 bin
+#define FTS_UPGRADE_FW_FILE                      "include/firmware/FT3617_HSD8_V17_D01_20220329_app.i"
+
 /*
  * if FTS_GET_MODULE_NUM >= 2, fw corrsponding with FTS_VENDOR_ID2
  * define your own fw_file, the sample one is invalid
  */
-#define FTS_UPGRADE_FW2_FILE                     "include/firmware/fw_sample.i"
+#define FTS_UPGRADE_FW2_FILE                     "include/firmware/FT3617-003_Flash128K_HSD8_V8_D01_20220428_app.i"
 
 /*
  * if FTS_GET_MODULE_NUM >= 3, fw corrsponding with FTS_VENDOR_ID3

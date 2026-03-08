@@ -858,6 +858,8 @@ int aml_get_audio_edid(struct snd_kcontrol *kcontrol,
 			p_extn->user_setting_edid_size == 0) {
 		p_extn->default_edid_size = (int)rx_edid_get_aud_sad(
 				p_extn->default_edid);
+		if (p_extn->default_edid_size > MAX_AUDIO_EDID_LENGTH)
+			p_extn->default_edid_size = MAX_AUDIO_EDID_LENGTH;
 		memcpy(p_extn->user_setting_edid, p_extn->default_edid,
 		       p_extn->default_edid_size);
 	}
@@ -886,6 +888,8 @@ int aml_set_audio_edid(struct snd_kcontrol *kcontrol,
 		/* restore the default edid */
 		p_extn->default_edid_size = (int)rx_edid_get_aud_sad(
 				p_extn->default_edid);
+		if (p_extn->default_edid_size > MAX_AUDIO_EDID_LENGTH)
+			p_extn->default_edid_size = MAX_AUDIO_EDID_LENGTH;
 		memset(p_extn->user_setting_edid, 0, MAX_AUDIO_EDID_LENGTH);
 		memcpy(p_extn->user_setting_edid, p_extn->default_edid,
 		       p_extn->default_edid_size);

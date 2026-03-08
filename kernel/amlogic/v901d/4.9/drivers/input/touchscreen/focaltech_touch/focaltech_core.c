@@ -51,7 +51,7 @@
 #define FTS_SUSPEND_LEVEL 1     /* Early-suspend level */
 #endif
 #include "focaltech_core.h"
-
+#include "focaltech_flash.h"
 /*****************************************************************************
 * Private constant and macro definitions using #define
 *****************************************************************************/
@@ -130,7 +130,6 @@ void fts_tp_state_recovery(struct fts_ts_data *ts_data)
     FTS_FUNC_EXIT();
 }
 
-#if 1
 int fts_reset_proc(int hdelayms)
 {
     FTS_DEBUG("tp reset");
@@ -143,7 +142,6 @@ int fts_reset_proc(int hdelayms)
 
     return 0;
 }
-#endif
 
 void fts_irq_disable(void)
 {
@@ -202,9 +200,11 @@ void fts_hid2std(void)
     }
 }
 
+u8 vendor_table[2] = { 0x82, 0x83};
+
 static int fts_get_chip_types(
-    struct fts_ts_data *ts_data,
-    u8 id_h, u8 id_l, bool fw_valid)
+	struct fts_ts_data *ts_data,
+	u8 vendor_id, u8 id_h, u8 id_l, bool fw_valid)
 {
     int i = 0;
     struct ft_chip_t ctype[] = FTS_CHIP_TYPE_MAPPING;
@@ -215,12 +215,15 @@ static int fts_get_chip_types(
         return -EINVAL;
     }
 
-    FTS_DEBUG("verify id:0x%02x%02x", id_h, id_l);
-    for (i = 0; i < ctype_entries; i++) {
-        if (VALID == fw_valid) {
-            if ((id_h == ctype[i].chip_idh) && (id_l == ctype[i].chip_idl))
-                break;
+	FTS_DEBUG("verify id:0x%02x%02x", id_h, id_l);
+	for (i = 0; i < ctype_entries; i++) {
+		if (fw_valid == VALID) {
+			if ((vendor_id == vendor_table[i])
+				&& (id_h == ctype[i].chip_idh)
+				&& (id_l == ctype[i].chip_idl))
+				break;
         } else {
+
             if (((id_h == ctype[i].rom_idh) && (id_l == ctype[i].rom_idl))
                 || ((id_h == ctype[i].pb_idh) && (id_l == ctype[i].pb_idl))
                 || ((id_h == ctype[i].bl_idh) && (id_l == ctype[i].bl_idl)))
@@ -254,6 +257,7 @@ static int fts_read_bootid(struct fts_ts_data *ts_data, u8 *id)
     msleep(FTS_CMD_START_DELAY);
     id_cmd[0] = FTS_CMD_READ_ID;
     id_cmd[1] = id_cmd[2] = id_cmd[3] = 0x00;
+
     if (ts_data->ic_info.is_incell)
         id_cmd_len = FTS_CMD_READ_ID_LEN_INCELL;
     else
@@ -281,14 +285,18 @@ static int fts_read_bootid(struct fts_ts_data *ts_data, u8 *id)
 *****************************************************************************/
 static int fts_get_ic_information(struct fts_ts_data *ts_data)
 {
-    int ret = 0;
-    int cnt = 0;
-    u8 chip_id[2] = { 0 };
+	int ret = 0;
+	int cnt = 0;
+	u8 chip_id[2] = { 0 };
+	u8 fwver = 0, vendor_id = 0;
 
     ts_data->ic_info.is_incell = FTS_CHIP_IDC;
     ts_data->ic_info.hid_supported = FTS_HID_SUPPORTTED;
 
-
+	ret = fts_read_reg(FTS_REG_FW_VER, &fwver);
+	FTS_DEBUG("FW VER = 0x%x\n", fwver);
+	ret = fts_read_reg(FTS_REG_VENDOR_ID, &vendor_id);
+	FTS_DEBUG("vendor id:0x%x", vendor_id);
     do {
         ret = fts_read_reg(FTS_REG_CHIP_ID, &chip_id[0]);
         ret = fts_read_reg(FTS_REG_CHIP_ID2, &chip_id[1]);
@@ -296,7 +304,11 @@ static int fts_get_ic_information(struct fts_ts_data *ts_data)
             FTS_DEBUG("chip id read invalid, read:0x%02x%02x",
                       chip_id[0], chip_id[1]);
         } else {
-            ret = fts_get_chip_types(ts_data, chip_id[0], chip_id[1], VALID);
+			ret = fts_get_chip_types(ts_data,
+					vendor_id,
+					chip_id[0],
+					chip_id[1],
+					VALID);
             if (!ret)
                 break;
             else
@@ -321,7 +333,10 @@ static int fts_get_ic_information(struct fts_ts_data *ts_data)
             return ret;
         }
 
-        ret = fts_get_chip_types(ts_data, chip_id[0], chip_id[1], INVALID);
+		ret = fts_get_chip_types(ts_data,
+			vendor_id, chip_id[0],
+			chip_id[1],
+			INVALID);
         if (ret < 0) {
             FTS_ERROR("can't get ic informaton");
             return ret;
@@ -1230,12 +1245,12 @@ static int fts_parse_dt(struct device *dev, struct fts_ts_platform_data *pdata)
                  pdata->key_x_coords[2], pdata->key_y_coords[2]);
     }
 
-    /* touchscreen reset gpio get dts info */
+    /* reset, irq gpio info */
     pdata->reset_gpio = of_get_named_gpio_flags(np, "focaltech,reset-gpio",
                         0, &pdata->reset_gpio_flags);
     if (pdata->reset_gpio < 0)
         FTS_ERROR("Unable to get reset_gpio");
-	/* irq gpio info */
+
     pdata->irq_gpio = of_get_named_gpio_flags(np, "focaltech,irq-gpio",
                       0, &pdata->irq_gpio_flags);
     if (pdata->irq_gpio < 0)
@@ -1532,7 +1547,7 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
 #endif
 
 #if (!FTS_CHIP_IDC)
-	fts_reset_proc(200);
+    fts_reset_proc(200);
 #endif
 
     ret = fts_get_ic_information(ts_data);

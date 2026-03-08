@@ -1377,7 +1377,7 @@ unsigned char dim_is_bypass(vframe_t *vf_in, unsigned int ch)
 		reason = 0x81;
 	} else if (ppre->cur_prog_flag		&&
 		   ((ppre->cur_width > default_width)	||
-		    (ppre->cur_height > default_height)	||
+		    (ppre->cur_height > (default_height + 8))	||
 		    (ppre->cur_inp_type & VIDTYPE_VIU_444))) {
 		reason = 0x82;
 	} else if ((ppre->cur_width < 128) || (ppre->cur_height < 16)) {
@@ -4523,6 +4523,16 @@ void dim_pre_de_process(unsigned int channel)
 
 	/*dim_dbg_pre_cnt(channel, "s2");*/
 
+	/* test for enable pps and afbcd input timeout */
+	if (ppre->field_count_for_cont < 1 &&
+	    IS_COMP_MODE(ppre->cur_inp_type))
+		ppre->is_bypass_mem |= DI_BIT2;
+	else
+		ppre->is_bypass_mem &= (~DI_BIT2);
+
+	if (IS_ERR_OR_NULL(ppre->di_wr_buf))
+		return;
+	di_lock_irqfiq_save(irq_flag2);
 	dimh_enable_di_pre_aml(&ppre->di_inp_mif,
 			       &ppre->di_mem_mif,
 			       &ppre->di_chan2_mif,
@@ -4533,13 +4543,11 @@ void dim_pre_de_process(unsigned int channel)
 			       &ppre->di_contwr_mif,
 			       ppre->madi_enable,
 			       chan2_field_num,
-			       ppre->vdin2nr |
-			       (ppre->is_bypass_mem << 4),
+			       ppre->vdin2nr,
 			       ppre);
 
 	//dimh_enable_afbc_input(ppre->di_inp_buf->vframe);
-	if (IS_ERR_OR_NULL(ppre->di_wr_buf))
-		return;
+
 	dcntr_set();
 
 	if (dim_afds()) {
@@ -4588,7 +4596,7 @@ void dim_pre_de_process(unsigned int channel)
 	/* must make sure follow part issue without interrupts,
 	 * otherwise may cause watch dog reboot
 	 */
-	di_lock_irqfiq_save(irq_flag2);
+	//di_lock_irqfiq_save(irq_flag2);
 	if (cpu_after_eq(MESON_CPU_MAJOR_ID_G12A)) {
 		/* enable mc pre mif*/
 		dimh_enable_di_pre_mif(true, dimp_get(edi_mp_mcpre_en));
@@ -4601,13 +4609,16 @@ void dim_pre_de_process(unsigned int channel)
 	}
 	/*dbg_set_DI_PRE_CTRL();*/
 	atomic_set(&get_hw_pre()->flg_wait_int, 1);
-	di_unlock_irqfiq_restore(irq_flag2);
-	/*reinit pre busy flag*/
 	ppre->pre_de_busy = 1;
-	pch->sum_pre++;
-	dim_dbg_pre_cnt(channel, "s3");
 	ppre->irq_time[0] = cur_to_msecs();
 	ppre->irq_time[1] = cur_to_msecs();
+	di_unlock_irqfiq_restore(irq_flag2);
+	/*reinit pre busy flag*/
+//	ppre->pre_de_busy = 1;
+	pch->sum_pre++;
+	dim_dbg_pre_cnt(channel, "s3");
+//	ppre->irq_time[0] = cur_to_msecs();
+//	ppre->irq_time[1] = cur_to_msecs();
 	dim_ddbg_mod_save(EDI_DBG_MOD_PRE_SETE, channel, ppre->in_seq);/*dbg*/
 	dim_tr_ops.pre_set(ppre->di_wr_buf->vframe->index_disp);
 #ifdef CONFIG_AMLOGIC_MEDIA_RDMA
@@ -5943,6 +5954,7 @@ unsigned char dim_pre_de_buf_config(unsigned int channel)
 			vframe->width = dimp_get(edi_mp_force_width);
 		if (dimp_get(edi_mp_force_height))
 			vframe->height = dimp_get(edi_mp_force_height);
+		vframe->width = roundup(vframe->width, width_roundup);
 
 		/* backup frame motion info */
 		vframe->combing_cur_lev = dimp_get(edi_mp_cur_lev);/*cur_lev;*/
@@ -10809,6 +10821,7 @@ void di_reg_setting(unsigned int channel, struct vframe_s *vframe)
 {
 	unsigned short nr_height = 0, first_field_type;
 	struct di_dev_s *de_devp = get_dim_de_devp();
+	unsigned int x, y;
 
 	dbg_pl("%s:ch[%d]:for first ch reg:\n", __func__, channel);
 
@@ -10895,8 +10908,11 @@ void di_reg_setting(unsigned int channel, struct vframe_s *vframe)
 	}
 
 	/*--------------------------*/
-
-	nr_height = (vframe->height >> 1);/*temp*/
+	dim_vf_x_y(vframe, &x, &y);
+	nr_height = (unsigned short)y;
+	if (IS_I_SRC(vframe->type))
+		nr_height = (nr_height >> 1);/*temp*/
+	dbg_reg("%s:0x%x:%d,%d,%d\n", __func__, vframe->type, x, y, nr_height);
 	/*--------------------------*/
 	dimh_calc_lmv_init();
 	first_field_type = (vframe->type & VIDTYPE_TYPEMASK);

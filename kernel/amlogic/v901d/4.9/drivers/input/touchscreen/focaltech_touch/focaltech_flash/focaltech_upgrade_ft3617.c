@@ -64,10 +64,11 @@ static int fts_ft5822_upgrade(u8 *buf, u32 len)
         return -EINVAL;
     }
 
-    /*check app flag*/
-    if (memcmp(app_flag, buf + 0x10E, 6) == 0) {
-        FTS_ERROR("app flag check fail");
-        return -EINVAL;
+	/*check app flag*/
+	if (memcmp(app_flag,
+			buf + 0x10E, 6) == 0) {
+		FTS_ERROR("FT3617:app flag check fail");
+		return -EINVAL;
     }
 
     /* enter into upgrade environment */

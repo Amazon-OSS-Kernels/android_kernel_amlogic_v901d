@@ -15194,11 +15194,11 @@ M:  Bing Jiang <Bing.Jiang@amlogic.com>
 F:  arch/arm/boot/dts/amlogic/tm2_t962e2_ab311_sbr.dts
 F:  arch/arm64/boot/dts/amlogic/tm2_t962e2_ab311_sbr.dts
 
-AMLOGIC ABC LED
+AMLOGIC abc123 LED
 M:  Jian Gong <jiangong.you@amlogic.com>
 F: drivers/leds/led-pattern.c
 
-AMLOGIC ABC WOL POWER
+AMLOGIC abc123 WOL POWER
 M:  zhenguang <zhenguang.luo@amlogic.com>
 F: drivers/amlogic/ethernet/phy/wol_power.c
 AMLOGIC S805Y DTS
@@ -15384,6 +15384,16 @@ F:      drivers/input/touchscreen/focaltech_touch/include/firmware/FT3617_HSD8_V
 F:      drivers/input/touchscreen/focaltech_touch/include/firmware/FT3617_HSD8_V13_D01_20210426_app.i
 F:      drivers/input/touchscreen/focaltech_touch/include/firmware/FT3617_HSD8_V14_D01_20210505_app.i
 
+JET-OPTO ADD FTS5726_003
+M:      dennis.hsu <dennis.hsu@jet-opto.com.tw>
+F:      drivers/input/touchscreen/focaltech_touch/focaltech_flash/focaltech_upgrade_ft5726_003.c
+F:      drivers/input/touchscreen/focaltech_touch/include/firmware/FT3617-003_Flash128K_HSD8_V7_D01_20210817_app.i
+
+JET-OPTO ADD FIRMWARE
+M:      robin.chiang <robin.chiang@jet-opto.com.tw>
+F:      drivers/input/touchscreen/focaltech_touch/include/firmware/FT3617-003_Flash128K_HSD8_V8_D01_20220428_app.i
+F:      drivers/input/touchscreen/focaltech_touch/include/firmware/FT3617_HSD8_V17_D01_20220329_app.i
+
 Silicon Image ADD SILIMAGE SII5293 DRIVER
 M:  Silicon Image <http://www.siliconimage.com>
 F： Documentation/devicetree/bindings/amlogic/amlogic-sii9293.txt
@@ -15445,5 +15455,4 @@ F： drivers/amlogic/ext_hdmiin/sii9293/linux_driver/platform/hal/sii_hal_linux_
 F： drivers/amlogic/ext_hdmiin/sii9293/linux_driver/platform/hal/sii_hal_priv.h
 F： drivers/amlogic/ext_hdmiin/sii9293/linux_driver/platform/osal/si_osdebug.c
 F： drivers/amlogic/ext_hdmiin/sii9293/linux_driver/platform/osal/sii_osal_linux_timer.c
->>>>>>> 2f41c53... LAGUNAF-2406: [LagunaF]Software changes for RU1 Aptiv display and media ports [2/4]
 

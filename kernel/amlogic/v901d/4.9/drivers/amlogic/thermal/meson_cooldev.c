@@ -233,11 +233,12 @@ int meson_cooldev_min_update(struct platform_device *pdev, int index)
 		break;
 
 	case COOL_DEV_TYPE_CPU_FREQ:
-		for_each_possible_cpu(cpu) {
-			if (topology_physical_package_id(0) != -1)
+		for (cpu = 0; cpu < num_possible_cpus(); cpu++) {
+			if (topology_physical_package_id(cpu) != -1)
 				c_id = topology_physical_package_id(cpu);
 			else
 				c_id = 0; /* force cluster 0 if no MC */
+
 			if (c_id == cool->cluster_id)
 				break;
 		}
@@ -400,12 +401,13 @@ static int meson_cooldev_probe(struct platform_device *pdev)
 		return -EPROBE_DEFER;
 	}
 
-	for_each_possible_cpu(cpu) {
-		if (topology_physical_package_id(0) != -1)
+	for (cpu = 0; cpu < num_possible_cpus(); cpu++) {
+		if (topology_physical_package_id(cpu) != -1)
 			c_id = topology_physical_package_id(cpu);
 		else
-			c_id = CLUSTER_BIG;	/* Always cluster 0 if no mc */
-		if (c_id > NUM_CLUSTERS) {
+			c_id = CLUSTER_BIG; /* force cluster 0 if no MC */
+
+		if (c_id >= NUM_CLUSTERS) {
 			pr_err("Cluster id: %d > %d\n", c_id, NUM_CLUSTERS);
 			return -EINVAL;
 		}

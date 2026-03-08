@@ -11211,27 +11211,36 @@ static int __init video_init(void)
 		goto err5;
 	}
 
-	if (legacy_vpp)
+	if (legacy_vpp) {
 		layer_cap =
 			LAYER1_AFBC |
 			LAYER1_AVAIL |
 			LAYER0_AFBC |
 			LAYER0_SCALER |
 			LAYER0_AVAIL;
-	else if (is_meson_tl1_cpu())
+	} else if (is_meson_tl1_cpu()) {
 		layer_cap =
 			LAYER1_AVAIL |
 			LAYER0_AFBC |
 			LAYER0_SCALER |
 			LAYER0_AVAIL;
-	else if (is_meson_tm2_cpu())
-		layer_cap =
-			LAYER1_SCALER |
-			LAYER1_AVAIL |
-			LAYER0_AFBC |
-			LAYER0_SCALER |
-			LAYER0_AVAIL;
-	else
+	} else if (is_meson_tm2_cpu()) {
+		if (is_meson_tm2_revb())
+			layer_cap =
+				LAYER1_AFBC |
+				LAYER1_SCALER |
+				LAYER1_AVAIL |
+				LAYER0_AFBC |
+				LAYER0_SCALER |
+				LAYER0_AVAIL;
+		else
+			layer_cap =
+				LAYER1_SCALER |
+				LAYER1_AVAIL |
+				LAYER0_AFBC |
+				LAYER0_SCALER |
+				LAYER0_AVAIL;
+	} else {
 		layer_cap =
 			LAYER1_AFBC |
 			LAYER1_SCALER |
@@ -11239,7 +11248,7 @@ static int __init video_init(void)
 			LAYER0_AFBC |
 			LAYER0_SCALER |
 			LAYER0_AVAIL;
-
+	}
 	init_waitqueue_head(&amvideo_trick_wait);
 	init_waitqueue_head(&amvideo_prop_change_wait);
 

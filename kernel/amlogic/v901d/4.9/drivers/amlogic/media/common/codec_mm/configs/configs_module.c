@@ -256,8 +256,15 @@ struct config_file_private {
 
 static int configs_open(struct inode *inode, struct file *file)
 {
-	struct mediaconfig_node *node = &mediaconfig_nodes[iminor(inode)];
+	struct mediaconfig_node *node;
 	struct config_file_private *priv;
+	unsigned int minor = iminor(inode);
+
+	if (minor > ARRAY_SIZE(mediaconfig_nodes)) {
+		pr_err("minor is not exist!\n");
+		return -1;
+	}
+	node = &mediaconfig_nodes[minor];
 
 	if (atomic_read(&node->opened_cnt) > MAX_OPENED_CNT) {
 		pr_err("too many files opened.!!\n");

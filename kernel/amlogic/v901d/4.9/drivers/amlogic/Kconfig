@@ -82,8 +82,6 @@ source "drivers/amlogic/thermal/Kconfig"
 
 source "drivers/amlogic/amaudio/Kconfig"
 
-source "drivers/amlogic/amaudio2/Kconfig"
-
 source "drivers/amlogic/amlkaraoke/Kconfig"
 
 source "drivers/amlogic/audiodsp/Kconfig"

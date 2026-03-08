@@ -1665,10 +1665,9 @@ static unsigned int di_mif_add_get_offset_v3(enum DI_MIF0_ID mif_index)
 	case DI_MIF0_ID_IF2:
 		index = 5;
 		break;
-
-		break;
 	default:
 		addr = DIM_ERR;
+		break;
 	};
 
 	if (addr == DIM_ERR)

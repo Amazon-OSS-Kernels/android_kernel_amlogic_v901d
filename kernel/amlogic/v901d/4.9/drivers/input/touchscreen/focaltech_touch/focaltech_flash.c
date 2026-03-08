@@ -58,15 +58,17 @@ u8 fw_file3[] = {
 };
 
 struct upgrade_module module_list[] = {
-    {FTS_MODULE_ID, FTS_MODULE_NAME, fw_file, sizeof(fw_file)},
-    {FTS_MODULE2_ID, FTS_MODULE2_NAME, fw_file2, sizeof(fw_file2)},
-    {FTS_MODULE3_ID, FTS_MODULE3_NAME, fw_file3, sizeof(fw_file3)},
+	{FTS_MODULE_ID, FTS_MODULE_NAME, fw_file, sizeof(fw_file)},
+	{FTS_MODULE2_ID, FTS_MODULE2_NAME, fw_file2, sizeof(fw_file2)},
+	{FTS_MODULE3_ID, FTS_MODULE3_NAME, fw_file3, sizeof(fw_file3)},
 };
 
 struct upgrade_func *upgrade_func_list[] = {
-    &upgrade_func_ft5822,
+	&upgrade_func_ft5822,
+	&upgrade_func_ft5822u,
 };
 
+u8 bootid_val[2] = {0};
 struct fts_upgrade *fwupgrade;
 
 /*****************************************************************************
@@ -126,7 +128,10 @@ static int fts_fwupg_get_boot_state(
         FTS_ERROR("write 90 cmd fail");
         return ret;
     }
-    FTS_INFO("read boot id:0x%02x%02x", val[0], val[1]);
+	bootid_val[0] = val[0];
+	bootid_val[1] = val[1];
+	FTS_INFO("read bootid_val:0x%02x%02x", bootid_val[0], bootid_val[1]);
+	FTS_INFO("read boot id:0x%02x%02x", val[0], val[1]);
 
     ids = &upg->ts_data->ic_info.ids;
     if ((val[0] == ids->rom_idh) && (val[1] == ids->rom_idl)) {
@@ -1832,8 +1837,13 @@ static int fts_fwupg_get_vendorid(struct fts_upgrade *upg, int *vid)
                  cfgbuf[FTS_CONIFG_MODULEID_OFF + 1]) == 0xFF)
                 module_id = cfgbuf[FTS_CONIFG_MODULEID_OFF];
         }
+		if ((bootid_val[0] == 0x58) && (bootid_val[1] == 0x2e))
+			vendor_id = 0x83;
+		else if ((bootid_val[0] == 0x58) && (bootid_val[1] == 0x2c))
+			vendor_id = 0x82;
+		else
+			FTS_INFO("NA");
     }
-
     if (ret < 0) {
         FTS_ERROR("fail to get vendor id from tp");
         return ret;

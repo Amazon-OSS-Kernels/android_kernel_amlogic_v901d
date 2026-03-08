@@ -213,13 +213,13 @@ retry:
 	for (i = 0; i < vfm_map_num; i++) {
 		struct vfm_map_s *pi = vfm_map[i];
 
-		if (!pi || (strcmp(pi->id, p->id))) {
+		if (!pi || (strncmp(pi->id, p->id, VFM_NAME_LEN))) {
 			/*not same id to next one*/
 			continue;
 		} else if (pi->valid) {
 			for (j = 0; j < p->vfm_map_size; j++) {
-				if (strcmp(pi->name[j],
-					p->name[j])){
+				if (strncmp(pi->name[j],
+					p->name[j], VFM_NAME_LEN)){
 					break;
 				}
 			}
@@ -237,7 +237,7 @@ retry:
 			 */
 			for (j = 0; j < p->vfm_map_size; j++) {
 				/*over write node.*/
-				strcpy(pi->name[j], p->name[j]);
+				memcpy(pi->name[j], p->name[j], VFM_NAME_LEN);
 			}
 			pi->vfm_map_size = p->vfm_map_size;
 			pi->valid = 1;

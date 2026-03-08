@@ -1191,9 +1191,8 @@ static long resman_ioctl_query(struct resman_session *sess, unsigned long para)
 		selec_res = resman.k;
 		resource = resman_find_resource_by_id(selec_res);
 		if (resource) {
-			strncpy(resman.v.query.name,
-				resource->name,
-				sizeof(resman.v.query.name) - 1);
+			memcpy(resman.v.query.name,
+				resource->name, sizeof(resman.v.query.name));
 			resman.v.query.type = resource->type;
 
 			switch (resource->type) {

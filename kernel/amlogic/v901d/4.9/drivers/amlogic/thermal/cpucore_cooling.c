@@ -288,7 +288,7 @@ cpucore_cooling_register(struct device_node *np, int cluster_id)
 
 	if ((topology_physical_package_id(0) != -1)
 		&& (cluster_id != CLUSTER_FLAG)) {
-		for_each_possible_cpu(cpu) {
+		for (cpu = 0; cpu < num_possible_cpus(); cpu++) {
 			if (topology_physical_package_id(cpu) == cluster_id)
 				cores++;
 		}
@@ -303,12 +303,12 @@ cpucore_cooling_register(struct device_node *np, int cluster_id)
 	if (cluster_id == CLUSTER_FLAG) {
 		for (i = MAX_CLUSTER - 1; i >= 0; i--) {
 			cores = 0;
-			for_each_possible_cpu(cpu) {
+			for (cpu = 0; cpu < num_possible_cpus(); cpu++) {
 				if (topology_physical_package_id(cpu) == i)
 					cores++;
 			}
-		cpucore_dev->core_num[i] = cores;
-		pr_info("%s, clutser[%d] core num:%d\n", __func__, i, cores);
+			cpucore_dev->core_num[i] = cores;
+			pr_info("%s, clutser[%d] core num:%d\n", __func__, i, cores);
 		}
 	}
 	cool_dev = thermal_of_cooling_device_register(np, dev_name, cpucore_dev,

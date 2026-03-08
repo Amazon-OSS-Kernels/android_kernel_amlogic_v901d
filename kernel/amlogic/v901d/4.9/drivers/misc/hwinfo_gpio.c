@@ -36,6 +36,11 @@
 #define ENCL_VIDEO_EN                   0x1ca0
 #define ENCL_VIDEO_MAX_LNCNT            0x1cbb
 
+#ifdef CONFIG_IDME
+#define LEN_NOPANEL		7
+extern const char *idme_get_model_name(void);
+#endif
+
 int g_hwinfo_gpio_val = -1;
 //extern int g_audio_clk_mode;
 
@@ -67,6 +72,20 @@ struct hwinfo_gpio {
 };
 
 struct hwinfo_gpio *hwinfo_global;
+
+static bool check_headless(void)
+{
+#ifdef CONFIG_IDME
+	const char *model_name;
+
+	model_name = idme_get_model_name();
+
+	if (!strncmp(model_name, "NOPANEL", LEN_NOPANEL))
+		return true;
+	else
+		return false;
+#endif
+}
 
 static void hwinfo_list_free(struct hwinfo_gpio *hwinfo)
 {
@@ -468,7 +487,12 @@ static int hwinfo_gpio_parse_dt(struct platform_device *pdev,
 		gpiod_direction_input(gpio_desc->desc);
 		gpiod_set_pull(gpio_desc->desc, GPIOD_PULL_UP);
 		g_hwinfo_gpio_val = gpiod_get_value(gpio_desc->desc);
-
+		if (check_headless()) {
+			g_hwinfo_gpio_val = 1;
+			dev_err(&pdev->dev,
+				"headless device, set the g_hwinfo_gpio_val to %d\n",
+				g_hwinfo_gpio_val);
+		}
 		ret = of_property_read_string_index(pdev->dev.of_node,
 			"hwinfo_high_val", i, &gpio_desc->high_val);
 		if (ret < 0) {

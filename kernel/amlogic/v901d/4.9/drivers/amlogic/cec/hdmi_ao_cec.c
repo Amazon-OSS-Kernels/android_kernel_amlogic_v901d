@@ -680,8 +680,10 @@ bool cec_get_poll_info(unsigned int phy_addr)/* UI port */
 
 	if (request_active == true)
 		ret = true;
-	if ((ret == false) && port_info_list[port_id].plug)
-		cec_set_plug(port_id, false);
+	if (port_id < 4) {
+		if ((ret == false) && port_info_list[port_id].plug)
+			cec_set_plug(port_id, false);
+	}
 	return ret;
 }
 

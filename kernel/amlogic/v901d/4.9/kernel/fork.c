@@ -1547,9 +1547,9 @@ static __latent_entropy struct task_struct *copy_process(
 	p = dup_task_struct(current, node);
 	if (!p)
 		goto fork_out;
-
+#ifdef CONFIG_CPU_FREQ_STAT
 	cpufreq_task_times_init(p);
-
+#endif
 	ftrace_graph_init_task(p);
 
 	rt_mutex_init_task(p);
