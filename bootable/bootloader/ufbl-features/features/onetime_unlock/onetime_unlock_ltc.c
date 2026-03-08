@@ -5,6 +5,7 @@
 #ifndef SUPPORT_UBOOT
 #include <debug.h>
 #endif
+#include <stdio.h>
 #include "amzn_onetime_unlock.h"
 #include "ufbl_debug.h" /* for dprintf */
 #include <tomcrypt.h>
@@ -20,7 +21,7 @@ static int amzn_verify_onetime_unlock_cert(const onetime_unlock_cert_t *cert, un
     int ret = -ERR_TEMP_UNLOCK_GENERAL_FAIL;
     unsigned int len;
 
-    uint8_t digest[sha256_desc.hashsize];
+    unsigned char digest[sha256_desc.hashsize];
     unsigned long digest_len = sha256_desc.hashsize;
     int sha256_idx = find_hash("sha256");
 

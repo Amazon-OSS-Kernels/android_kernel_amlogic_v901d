@@ -10,7 +10,7 @@
  * userdata, system_a/system_b partition, and boot_a/boot_b partition.
  *
  * Read more about zip file formatting here: https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
- * Wiki located here: https://wiki.labcollab.net/confluence/display/SMPPLAT/LagunaF+FireOS+USB+Updating
+ * Wiki located here: https://www.amazon.com
  */
 
 #ifndef _ZIP_ARCHIVE_H_

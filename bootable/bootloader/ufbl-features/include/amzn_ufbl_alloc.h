@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 - 2021 Amazon.com, Inc. or its Affiliates. All rights reserved.
+ * Copyright 2019 - 2022 Amazon.com, Inc. or its Affiliates. All rights reserved.
  */
 
 #ifndef __AMZN_UFBL_ALLOC_H
@@ -17,7 +17,11 @@
 #if defined(UFBL_FEATURE_SECURE_BOOT_MBEDTLS) || defined(UFBL_PLATFORM_AML)
 typedef unsigned long ulong;
 #endif
+#ifdef UFBL_PLATFORM_MSTAR
+#include <stdlib.h>
+#else
 #include <malloc.h>
+#endif
 #endif /* SUPPORT_BOLT */
 #define amzn_plat_alloc malloc
 #define amzn_plat_free free

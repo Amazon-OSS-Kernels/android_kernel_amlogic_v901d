@@ -58,7 +58,7 @@ int finalize_usb_verifier_hash_state(const unsigned char *signature, unsigned in
                                      const unsigned char *key, unsigned int key_len)
 {
     rsa_key *rsa_pk = NULL;
-    uint8_t digest[sha256_desc.hashsize];
+    unsigned char digest[sha256_desc.hashsize];
     int ret = 0;
     int status;
 

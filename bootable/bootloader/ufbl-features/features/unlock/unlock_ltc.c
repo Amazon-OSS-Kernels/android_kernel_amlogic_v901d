@@ -18,7 +18,7 @@ int amzn_verify_code_internal(const unsigned char *data, unsigned int data_len,
 	int ret = -ERR_UNLOCK_RSA_VERIFY_FAIL;
 	int status = -1;
 	rsa_key *rsa_pk = NULL;
-	uint8_t digest[sha256_desc.hashsize];
+	unsigned char digest[sha256_desc.hashsize];
 	unsigned long digest_len = sha256_desc.hashsize;
 
 	if (!data || !data_len ||
@@ -93,11 +93,11 @@ int amzn_verify_limited_unlock(const unsigned char *sig, unsigned int sig_len,
 {
 	int ret = -ERR_UNLOCK_SUCCESS;
 	unsigned int ctr;
-	uint8_t code[UNLOCK_CODE_LEN];
+	unsigned char code[UNLOCK_CODE_LEN];
 	unsigned int code_len = sizeof(code);
 
 	unsigned int key_len = 0;
-	const uint8_t *key = amzn_get_unlock_key(&key_len);
+	const unsigned char *key = amzn_get_unlock_key(&key_len);
 	if (!key || !key_len) {
 		dprintf(CRITICAL, "%s: Failed to get unlock key\n", __FUNCTION__);
 		ret = -ERR_UNLOCK_BAD_KEY;
@@ -125,11 +125,11 @@ done:
 int amzn_verify_unlock(const unsigned char *sig, unsigned int sig_len)
 {
 	int ret = ERR_UNLOCK_SUCCESS;
-	uint8_t code[UNLOCK_CODE_LEN];
+	unsigned char code[UNLOCK_CODE_LEN];
 	unsigned int code_len = sizeof(code);
 
 	unsigned int key_len = 0;
-	const uint8_t *key = NULL;
+	const unsigned char *key = NULL;
 
 	key = amzn_get_unlock_key(&key_len);
 	if (!key || !key_len) {

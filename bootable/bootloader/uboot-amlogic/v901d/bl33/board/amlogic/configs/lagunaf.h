@@ -125,7 +125,7 @@
 #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL3 0xF20DFE01 //amlogic tv ir --- ch-
 #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL4 0XBA45BD02 //amlogic small ir--- power
 #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL5 0xe51afb04
-/*https://wiki.labcollab.net/confluence/pages/viewpage.action?spaceKey=GINGERPLAT&title=Earthart+Firmware+Specification*/
+/*https://www.amazon.com*/
 
 #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL6	0xb9467d02 /* ABC power key */
 #define CONFIG_IR_REMOTE_POWER_UP_KEY_VAL7	0xa05f7d02 /* ABC netflix key */
@@ -534,6 +534,7 @@
 #define CONFIG_BOOTCOMMAND "run storeboot"
 
 //#define CONFIG_ENV_IS_NOWHERE  1
+#define CONFIG_NO_ENV_PART   1
 #define CONFIG_ENV_SIZE   (64*1024)
 #define CONFIG_FIT 1
 #define CONFIG_OF_LIBFDT 1

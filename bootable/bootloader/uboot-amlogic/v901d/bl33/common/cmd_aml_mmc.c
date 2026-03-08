@@ -294,7 +294,7 @@ static int get_off_size(struct mmc * mmc, char * name, uint64_t offset, uint64_t
 	// printf("blk_shift:%d , off:0x%llx , size:0x%llx.\n ",blk_shift,off,size );
 	part_info = find_mmc_partition_by_name(name);
 	if (part_info == NULL) {
-			printf("get partition info failed !!\n");
+			printf("get partition info failed in get_off_size()!!\n");
 			return -1;
 	}
 	off = part_info->offset + offset;
@@ -314,7 +314,7 @@ static int get_partition_size(unsigned char* name, uint64_t* addr)
 	struct partitions *part_info = NULL;
 	part_info = find_mmc_partition_by_name((char *)name);
 	if (part_info == NULL) {
-			printf("get partition info failed !!\n");
+			printf("get partition info failed in get_partition_size()!!\n");
 			return -1;
 	}
 

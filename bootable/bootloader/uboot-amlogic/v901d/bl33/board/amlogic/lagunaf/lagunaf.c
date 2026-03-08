@@ -1277,10 +1277,9 @@ int board_late_init(void)
 	TE(__func__);
 	char outputModePre[30] = {0};
 	char outputModeCur[30] = {0};
-	char *pOutputmode = getenv("outputmode");
-	if (pOutputmode != NULL) {
-	    strncat(outputModePre, pOutputmode, sizeof(outputModePre) - 1);
-	}	
+	outputModePre[29] = '\0';
+	outputModeCur[29] = '\0';
+	strncpy(outputModePre,getenv("outputmode"),sizeof(outputModePre)-1);
 
 #ifdef  CONFIG_LOGOPARAM_ENABLE
     //update env before anyone using it
@@ -1305,7 +1304,7 @@ dd
 #endif
 
 	/*add board late init function here*/
-	run_command("env default -a;saveenv;", 0);
+	//run_command("env default -a;saveenv;", 0);
 
 #ifdef CONFIG_LOGOPARAM_ENABLE
     // set outputmode to default
@@ -1414,10 +1413,7 @@ dd
 
 	TE(__func__);
 #endif
-	*pOutputmode = getenv("outputmode");
-	if (pOutputmode != NULL) {
-	    strncat(outputModeCur, pOutputmode, sizeof(outputModeCur) - 1);
-	}	
+	strncpy(outputModeCur,getenv("outputmode"),sizeof(outputModeCur)-1);
 
 	if (strcmp(outputModeCur,outputModePre)) {
 		printf("uboot outputMode change saveenv old:%s - new:%s\n",outputModePre,outputModeCur);

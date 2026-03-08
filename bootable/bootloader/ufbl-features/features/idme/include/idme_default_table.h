@@ -151,6 +151,10 @@
 #include "idme_default_table_ABC.h"
 #endif
 
+#if defined(UFBL_PROJ_ABC)
+#include "idme_default_table_ABC.h"
+#endif
+
 #if defined(UFBL_PLAT_AML_T950X4)
 #include "idme_default_table_t950x4.h"
 #endif

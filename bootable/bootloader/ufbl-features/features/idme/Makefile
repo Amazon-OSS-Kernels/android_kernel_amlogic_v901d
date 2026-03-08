@@ -23,7 +23,7 @@ else ifeq (yes,$(findstring yes,$(UFBL_PROJ_ABC) $(UFBL_PROJ_ABC) $(UFBL_PROJ_AB
     $(UFBL_PROJ_ABC) $(UFBL_PROJ_ABC) $(UFBL_PLAT_MTK_T31) $(UFBL_PLAT_MTK_MT9022)))
 IDME_OBJECTS += idme_platform_mstar.o
 else ifeq (yes, $(findstring yes, $(UFBL_PROJ_ABC) $(UFBL_PROJ_ABC) $(UFBL_PROJ_LAGUNAF) \
-    $(UFBL_PROJ_ABC) $(UFBL_PROJ_ABC) $(UFBL_PLAT_AML_T950X4) $(UFBL_PROJ_ABC) $(UFBL_PROJ_ABCBO) \
+    $(UFBL_PROJ_ABC) $(UFBL_PROJ_ABC) $(UFBL_PROJ_ABC) $(UFBL_PLAT_AML_T950X4) $(UFBL_PROJ_ABC) $(UFBL_PROJ_ABCBO) \
     $(UFBL_PLAT_AML_S905Y4)))
 IDME_OBJECTS += idme_platform_amlogic.o
 else ifeq (yes, $(findstring yes, $(UFBL_PROJ_ABC)))

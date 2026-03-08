@@ -560,6 +560,9 @@ ifeq ($(BUILD_TAG_SUFFIX),DIRTY)
 KBUILD_CFLAGS += -DUBOOT_BUILD_TAG_SUFFIX_DIRTY
 endif
 
+STACK_CFLAGS  := $(call cc-option,-fstack-protector-strong)
+KBUILD_CFLAGS += $(STACK_CFLAGS)
+
 KBUILD_CFLAGS	+= -g
 # $(KBUILD_AFLAGS) sets -g, which causes gcc to pass a suitable -g<format>
 # option to the assembler.
