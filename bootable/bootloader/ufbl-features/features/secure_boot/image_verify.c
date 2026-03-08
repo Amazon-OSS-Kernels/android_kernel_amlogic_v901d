@@ -4,7 +4,9 @@
 
 #ifndef SUPPORT_BOLT
 #include <string.h>
+#ifndef UFBL_PLATFORM_AML
 #include <debug.h>
+#endif
 #include <stddef.h>
 #endif
 #include "amzn_secure_boot.h"

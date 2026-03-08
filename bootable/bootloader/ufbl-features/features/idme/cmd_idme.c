@@ -1,5 +1,5 @@
 /*
-  * Copyright (C) 2011-2020 Amazon.com Inc. or its affiliates.  All Rights Reserved.
+  * Copyright (C) 2011-2022 Amazon.com Inc. or its affiliates.  All Rights Reserved.
 */
 #if defined(SUPPORT_UBOOT) || defined(SUPPORT_BOLT)
 
@@ -86,7 +86,7 @@ static int idme_write(const unsigned char *pbuf);
 	!defined(UFBL_PROJ_ABC) && \
 	!defined(UFBL_PROJ_ABC) && \
 	!defined(UFBL_PLAT_MTK_T31) && \
-	!defined(UFBL_PROJ_ABC)
+	!defined(UFBL_PLAT_MTK_MT9022)
 
 static int atoi(const char *s)
 {

@@ -1235,6 +1235,7 @@ void set_dts_status(void)
 }
 
 bool is_ru = 0;
+bool is_headless = 0;
 
 int board_late_init(void)
 {
@@ -1364,6 +1365,8 @@ dd
 		printf("get idme model_name: %s\n", buf);
 		if(strcmp(buf, "APTIV")==0)
 			is_ru = true;
+		if(strcmp(buf, "NOPANEL")==0)
+			is_headless = true;
 	}
 	printf("amz_dev_flags_check: 0x%lu\n", amz_dev_flags_check());
 #endif
@@ -1564,6 +1567,10 @@ int checkhw(char * name)
                 strcpy(loc_name, "tm2revb_lagunaf_ru_32b\0");
 	}
 
+	if(is_headless){
+                memset(loc_name,0,64);
+                strcpy(loc_name, "tm2revb_crane_32b\0");
+	}
 
 	evolvecheck();
 

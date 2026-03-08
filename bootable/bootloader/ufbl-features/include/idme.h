@@ -1,18 +1,20 @@
 /*
-  * Copyright (C) 2015 - 2020 Amazon.com Inc. or its affiliates.  All Rights Reserved.
+  * Copyright (C) 2015 - 2022 Amazon.com Inc. or its affiliates.  All Rights Reserved.
 */
 #ifdef SUPPORT_UBOOT
+#ifndef UFBL_PLATFORM_AML
 #include <common.h>
+#endif
 #include <config.h>
 #if !defined(UFBL_PROJ_ABC) && !defined(UFBL_PROJ_ABC) && !defined(UFBL_PROJ_ABC) \
     && !defined(UFBL_PROJ_ABC) && !defined(UFBL_PROJ_ABC) && !defined(UFBL_PLAT_MTK_T31) \
-    && !defined(UFBL_PROJ_ABC)
+    && !defined(UFBL_PLAT_MTK_MT9022) && !defined(UFBL_PLATFORM_AML)
 #include <vsprintf.h>
 #endif
 #include <linux/string.h>
 #if defined(UFBL_PROJ_ABC) || defined(UFBL_PROJ_ABC) || defined(UFBL_PROJ_ABC) \
     && !defined(UFBL_PROJ_ABC) && !defined(UFBL_PROJ_ABC) && !defined(UFBL_PLAT_MTK_T31) \
-    && !defined(UFBL_PROJ_ABC)
+    && !defined(UFBL_PLAT_MTK_MT9022)
 #include <stdio.h>
 #endif
 #endif

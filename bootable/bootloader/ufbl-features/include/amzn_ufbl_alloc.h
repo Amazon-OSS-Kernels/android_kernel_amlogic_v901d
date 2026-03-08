@@ -14,7 +14,7 @@
 #ifdef SUPPORT_BOLT
 #include <platform/bcm_platform.h>
 #else
-#ifdef UFBL_FEATURE_SECURE_BOOT_MBEDTLS
+#if defined(UFBL_FEATURE_SECURE_BOOT_MBEDTLS) || defined(UFBL_PLATFORM_AML)
 typedef unsigned long ulong;
 #endif
 #include <malloc.h>

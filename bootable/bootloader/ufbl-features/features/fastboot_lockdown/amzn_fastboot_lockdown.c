@@ -103,6 +103,8 @@ int is_restricted_command_on_locked_hw(const unsigned char* const fastboot_comma
 #if defined(UFBL_FEATURE_FLASH_WHILE_LOCKED)
 		"oem update",
 		"stage",
+		"erase:userdata",
+		"format:userdata",
 #endif
 		"flash:unlock", // the fastboot command parser convert "flash unlock" to "flash:unlock"
 #if defined(UFBL_FEATURE_SECURE_FLASHING)
@@ -127,11 +129,8 @@ int is_restricted_command_on_locked_hw(const unsigned char* const fastboot_comma
 		"env",
 		"signature",
 		"oem",	 // "oem flags" is in the whitelist
-
-#if !defined(UFBL_FEATURE_FLASH_WHILE_LOCKED)
-		"flash", // Will remove from whitelist once BMW is
-		"erase", // ready for a switch over to the secure way
-#endif
+		"flash",
+		"erase",
 	};
 
 #if defined(UFBL_FEATURE_SECURE_FLASHING)
